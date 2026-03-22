@@ -33,16 +33,25 @@ try:
     import plotly.graph_objects as go
     from datetime import datetime
 
-    # Add project root to path
-    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    if project_root not in sys.path:
-        sys.path.insert(0, project_root)
+    # ============================================
+    # PATH SETUP – REPOSITORY ROOT
+    # ============================================
+    # Get the directory of the current file (pages/)
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    # Go up three levels to get the repository root
+    # (pages -> app_advanced -> repo_root)
+    repo_root = os.path.dirname(os.path.dirname(os.path.dirname(current_dir)))
 
-    # Add app_advanced to path so components can be found
-    app_advanced_path = os.path.join(project_root, 'app_advanced')
+    # Add repo_root to sys.path so Python can find top‑level packages
+    if repo_root not in sys.path:
+        sys.path.insert(0, repo_root)
+
+    # Also add the app_advanced folder itself (for components)
+    app_advanced_path = os.path.join(repo_root, 'app_advanced')
     if app_advanced_path not in sys.path:
         sys.path.insert(0, app_advanced_path)
 
+    # Now import project modules (they will be found because repo_root is in sys.path)
     from components.ocr_utils import extract_text_from_image
     from components.company_verifier import extract_company_mentions, verify_sender
     from components.feedback_db import save_feedback
@@ -422,13 +431,12 @@ try:
     }
 
     # ============================================
-    # LOAD MODELS (unchanged)
+    # LOAD MODELS (using repo_root)
     # ============================================
     @st.cache_resource
     def load_models():
         models = {}
-        base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        models_path = os.path.join(base_path, "models")
+        models_path = os.path.join(repo_root, "models")  # ← now correct
 
         model_files = {
             'sms': 'sms_model.pkl',
@@ -474,7 +482,7 @@ try:
     router, rule_engine, language_detector, models = init_system()
 
     # ============================================
-    # ML PREDICTION FUNCTION (unchanged)
+    # ML PREDICTION FUNCTION (using repo_root)
     # ============================================
     def get_ml_prediction(fraud_type, input_data, features):
         if fraud_type not in models or models[fraud_type] is None:
@@ -484,8 +492,7 @@ try:
             model = model_data['model']
             scaler = model_data['scaler']
             
-            base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            models_path = os.path.join(base_path, "models")
+            models_path = os.path.join(repo_root, "models")  # ← consistent
             feature_names_path = os.path.join(models_path, f"{fraud_type}_feature_names.pkl")
             
             if os.path.exists(feature_names_path):
@@ -1019,7 +1026,7 @@ try:
         st.markdown("""
         <div style="background:rgba(10,12,16,0.6); border-radius:32px; padding:2rem; border:1px solid #2D3A46;">
             <h3 style="color:#FEDD89;">अभयम् – The Fearless Fraud Shield</h3>
-            <p style="color:#EFF7F6;"><strong>Why अभयम्?</strong> In a country where millions face scams in their native languages, we built a system that understands you – whether you speak Hindi, Marathi, Tamil, or any of India’s 12 official languages. Combining advanced machine learning with a powerful rule engine, अभयम् protects 1.4 billion Indians from fraud, one message at a time.</p>
+            <p style="color:#EFF7F6;"><strong>Why अभयम्?</strong> In a country where millions face scams in their native languages, we built a system that understands you – whether you speak Hindi, Marathi, Tamil, or any of India’s 10 official languages. Combining advanced machine learning with a powerful rule engine, अभयम् protects 1.4 billion Indians from fraud, one message at a time.</p>
             <hr style="border-color:#2D3A46;">
             <p><strong style="color:#18B7BE;">👩‍💻 Created by:</strong> <span style="color:#9BB8C9;">Sakshi Shrikrishna Magham</span></p>
             <p><strong style="color:#18B7BE;">🎓 Pursuing:</strong> <span style="color:#9BB8C9;">MSc in Data Science and Artificial Intelligence</span></p>
