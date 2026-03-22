@@ -464,35 +464,33 @@ try:
     @st.cache_resource
     def load_models():
         models = {}
-        models_path = os.path.join(repo_root, "models") # ← now correct
+        models_path = os.path.join(repo_root, "models")
 
-         print(f"[DEBUG] models_path = {models_path}")
-         print(f"[DEBUG] Does models_path exist? {os.path.isdir(models_path)}")
-         if os.path.isdir(models_path):
-             print(f"[DEBUG] Contents of models_path: {os.listdir(models_path)}")
-         else:
-             print("[DEBUG] models folder NOT FOUND!")
+        # Debug prints
+        print(f"[DEBUG] models_path = {models_path}")
+        print(f"[DEBUG] Does models_path exist? {os.path.isdir(models_path)}")
+        if os.path.isdir(models_path):
+            print(f"[DEBUG] Contents of models_path: {os.listdir(models_path)}")
+        else:
+            print("[DEBUG] models folder NOT FOUND!")
 
-
-        
-        
         model_files = {
-            'sms': 'sms_model.pkl',
-            'call': 'call_model.pkl',
-            'crypto': 'crypto_model.pkl',
-            'job': 'fake_jobs_model.pkl',
-            'social': 'social_media_model.pkl',
-            'website': 'web_model.pkl'
-        }
-        scaler_files = {
-            'sms': 'sms_scaler.pkl',
-            'call': 'call_scaler.pkl',
-            'crypto': 'crypto_scaler.pkl',
-            'job': 'fake_jobs_scaler.pkl',
-            'social': 'social_media_scaler.pkl',
-            'website': 'web_scaler.pkl'
-        }
-        
+        'sms': 'sms_model.pkl',
+        'call': 'call_model.pkl',
+        'crypto': 'crypto_model.pkl',
+        'job': 'fake_jobs_model.pkl',
+        'social': 'social_media_model.pkl',
+        'website': 'web_model.pkl'
+         }
+         scaler_files = {
+        'sms': 'sms_scaler.pkl',
+        'call': 'call_scaler.pkl',
+        'crypto': 'crypto_scaler.pkl',
+        'job': 'fake_jobs_scaler.pkl',
+        'social': 'social_media_scaler.pkl',
+        'website': 'web_scaler.pkl'
+         }
+
         for ft, fname in model_files.items():
             model_path = os.path.join(models_path, fname)
             scaler_path = os.path.join(models_path, scaler_files[ft])
@@ -503,13 +501,13 @@ try:
                         'model': joblib.load(model_path),
                         'scaler': joblib.load(scaler_path) if os.path.exists(scaler_path) else None
                     }
+                    print(f"[DEBUG] Successfully loaded {ft}")
                 except Exception as e:
                     print(f"Error loading {ft}: {e}")
                     models[ft] = None
             else:
                 models[ft] = None
         return models
-
     @st.cache_resource
     def init_system():
         router = get_feature_router()
