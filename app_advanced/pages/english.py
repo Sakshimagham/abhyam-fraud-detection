@@ -650,12 +650,7 @@ try:
         with col2:
             st.metric(TEXTS['languages'], "10", "🇮🇳")
 
-        # ---- DEBUG: Show which models loaded ----
-        st.markdown("---")
-        st.markdown("### 🔍 Model Debug")
-        st.write("Models loaded:")
-        for k, v in models.items():
-            st.write(f"{k}: {'✅' if v is not None else '❌'}")
+        
         # ----------------------------------------
 
     # ============================================
