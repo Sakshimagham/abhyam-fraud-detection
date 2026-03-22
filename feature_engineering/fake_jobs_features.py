@@ -1,4 +1,3 @@
-# feature_engineering/fake_jobs_features.py
 """
 Enhanced Fake Job Posting Feature Engineering with Multilingual Support
 Detects job scams in multiple Indian languages
@@ -12,9 +11,13 @@ import re
 from .multilingual_utils import MultilingualFeatureExtractor
 from .language_detector import IndianLanguageDetector
 
-BASE_PATH = r"D:\SKM-IMP\SAKSHI PROJECT\final\fraud_ai_system"
-DATA_PATH = os.path.join(BASE_PATH, "data", "processed", "fake_jobs_preprocessed.csv")
-FEATURE_PATH = os.path.join(BASE_PATH, "feature_engineering")
+# ============================================================================
+# DYNAMIC PATH SETUP – replace absolute Windows paths
+# ============================================================================
+current_dir = os.path.dirname(os.path.abspath(__file__))
+repo_root = os.path.dirname(current_dir)
+DATA_PATH = os.path.join(repo_root, "data", "processed", "fake_jobs_preprocessed.csv")
+FEATURE_PATH = current_dir   # where vectorizers will be saved
 
 class MultilingualFakeJobsFeatureExtractor:
     """
@@ -37,7 +40,7 @@ class MultilingualFakeJobsFeatureExtractor:
         self.multilingual_utils = MultilingualFeatureExtractor()
         self.language_detector = IndianLanguageDetector()
         
-        # Job scam keywords in Indian languages
+        # Job scam keywords in Indian languages (unchanged)
         self.job_scam_keywords = {
             'marathi': {
                 'red_flags': ['फी', 'पैसे भरा', 'रजिस्ट्रेशन फी', 'प्रोसेसिंग फी', 'ट्रेनिंग फी'],
@@ -89,7 +92,7 @@ class MultilingualFakeJobsFeatureExtractor:
             }
         }
         
-        # Common fake job patterns in India
+        # Common fake job patterns in India (unchanged)
         self.indian_job_scam_patterns = {
             'fee_based': [
                 'registration fee', 'processing fee', 'training fee', 'security deposit',
@@ -112,13 +115,13 @@ class MultilingualFakeJobsFeatureExtractor:
             ]
         }
         
-        # Legitimate Indian companies (common in scams)
+        # Legitimate Indian companies (common in scams) (unchanged)
         self.legitimate_companies_misused = [
             'amazon', 'flipkart', 'google', 'microsoft', 'tcs', 'infosys', 'wipro',
             'hdfc', 'icici', 'sbi', 'reliance', 'tata', 'mahindra', 'airtel', 'jio'
         ]
         
-        # Suspicious contact methods
+        # Suspicious contact methods (unchanged)
         self.suspicious_contacts = [
             'gmail.com', 'yahoo.com', 'rediffmail.com', 'hotmail.com',  # Free emails
             'whatsapp', 'telegram', 'signal',  # Messaging apps
