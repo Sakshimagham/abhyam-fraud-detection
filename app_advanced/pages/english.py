@@ -9,9 +9,6 @@ from datetime import datetime, timedelta
 # ============================================================================
 # PATH SETUP – WORKING DIRECTORY = REPOSITORY ROOT (on Streamlit Cloud)
 # ============================================================================
-import os
-import sys
-
 # The current working directory is the repository root (on Streamlit Cloud)
 repo_root = os.getcwd()
 print(f"[DEBUG] Working directory (repo_root): {repo_root}")
@@ -36,7 +33,6 @@ models_path = os.path.join(repo_root, 'models')
 print(f"[DEBUG] models folder exists? {os.path.isdir(models_path)}")
 if os.path.isdir(models_path):
     print(f"[DEBUG] models contents: {os.listdir(models_path)}")
-
 # -----------------------------------------------------------------------------
 # Now try to import project modules – catch errors and show details
 # -----------------------------------------------------------------------------
@@ -469,8 +465,7 @@ try:
     def load_models():
         models = {}
         models_path = os.path.join(repo_root, "models") # ← now correct
-        feature_names_path = os.path.join(models_path, f"{fraud_type}_feature_names.pkl")
-
+        
         model_files = {
             'sms': 'sms_model.pkl',
             'call': 'call_model.pkl',
