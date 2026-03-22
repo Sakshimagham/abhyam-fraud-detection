@@ -465,6 +465,16 @@ try:
     def load_models():
         models = {}
         models_path = os.path.join(repo_root, "models") # ← now correct
+
+         print(f"[DEBUG] models_path = {models_path}")
+         print(f"[DEBUG] Does models_path exist? {os.path.isdir(models_path)}")
+         if os.path.isdir(models_path):
+             print(f"[DEBUG] Contents of models_path: {os.listdir(models_path)}")
+         else:
+             print("[DEBUG] models folder NOT FOUND!")
+
+
+        
         
         model_files = {
             'sms': 'sms_model.pkl',
@@ -486,6 +496,7 @@ try:
         for ft, fname in model_files.items():
             model_path = os.path.join(models_path, fname)
             scaler_path = os.path.join(models_path, scaler_files[ft])
+            print(f"[DEBUG] Checking {ft}: model_path={model_path}, exists={os.path.exists(model_path)}")
             if os.path.exists(model_path):
                 try:
                     models[ft] = {
