@@ -1,0 +1,7 @@
+[server]
+# Disable the pages folder from being auto-discovered
+folderWatchBlacklist = ["pages"]
+
+[client]
+# Hide the pages navigation
+showSidebarNavigation = false

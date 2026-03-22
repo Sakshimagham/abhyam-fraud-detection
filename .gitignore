@@ -1,0 +1,42 @@
+@"
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Large/unnecessary folders (keep only what's needed)
+IndicTrans2-main/
+1_data/                # duplicate data folder
+app_demo/              # demo app (optional, but keep if you want)
+scraping/              # scraping scripts (optional)
+package-lock.json
+package.json
+page_source_debug.html
+settings.json
+setup_folders.py
+install_argos_packages.py
+translate_english_to_indic.py
+
+# Raw data (exclude because too large)
+data/raw/
+
+# User data
+users.json
+*.db
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Streamlit secrets
+.streamlit/secrets.toml
+
+# Logs
+*.log
+"@ | Out-File .gitignore -Encoding utf8
