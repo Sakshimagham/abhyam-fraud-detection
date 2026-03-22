@@ -6,34 +6,36 @@ import time
 import random
 from datetime import datetime, timedelta
 
-# -----------------------------------------------------------------------------
-# PATH SETUP – MUST BE DONE BEFORE ANY PROJECT IMPORTS
-# -----------------------------------------------------------------------------
-# Get the absolute path of the current file
-current_file = os.path.abspath(__file__)
-print(f"[DEBUG] Current file: {current_file}")
+# ============================================================================
+# PATH SETUP – WORKING DIRECTORY = REPOSITORY ROOT (on Streamlit Cloud)
+# ============================================================================
+import os
+import sys
 
-# Compute repository root: go up three levels (pages -> app_advanced -> repo_root)
-repo_root = os.path.dirname(os.path.dirname(os.path.dirname(current_file)))
-print(f"[DEBUG] Repository root: {repo_root}")
+# The current working directory is the repository root (on Streamlit Cloud)
+repo_root = os.getcwd()
+print(f"[DEBUG] Working directory (repo_root): {repo_root}")
 
-# Add repo_root to sys.path (at the front) so that feature_engineering can be found
+# Add repo_root to sys.path so that top‑level packages (feature_engineering, etc.) can be found
 if repo_root not in sys.path:
     sys.path.insert(0, repo_root)
-print(f"[DEBUG] sys.path after adding repo_root: {sys.path}")
 
-# Also add app_advanced (for components) – optional but harmless
+# Also add app_advanced so that components can be found (optional)
 app_advanced_path = os.path.join(repo_root, 'app_advanced')
 if app_advanced_path not in sys.path:
     sys.path.insert(0, app_advanced_path)
 
-# Check if the feature_engineering folder exists
-feature_engineering_path = os.path.join(repo_root, 'feature_engineering')
-print(f"[DEBUG] feature_engineering exists? {os.path.isdir(feature_engineering_path)}")
-if os.path.isdir(feature_engineering_path):
-    print(f"[DEBUG] Contents: {os.listdir(feature_engineering_path)[:5]}")
-else:
-    print("[DEBUG] feature_engineering directory NOT found!")
+# Debug: Check if feature_engineering exists
+feature_eng_path = os.path.join(repo_root, 'feature_engineering')
+print(f"[DEBUG] feature_engineering exists? {os.path.isdir(feature_eng_path)}")
+if os.path.isdir(feature_eng_path):
+    print(f"[DEBUG] feature_engineering contents (first 5): {os.listdir(feature_eng_path)[:5]}")
+
+# Debug: Check if models folder exists
+models_path = os.path.join(repo_root, 'models')
+print(f"[DEBUG] models folder exists? {os.path.isdir(models_path)}")
+if os.path.isdir(models_path):
+    print(f"[DEBUG] models contents: {os.listdir(models_path)}")
 
 # -----------------------------------------------------------------------------
 # Now try to import project modules – catch errors and show details
@@ -466,7 +468,8 @@ try:
     @st.cache_resource
     def load_models():
         models = {}
-        models_path = os.path.join(repo_root, "models")  # ← now correct
+        models_path = os.path.join(repo_root, "models") # ← now correct
+        feature_names_path = os.path.join(models_path, f"{fraud_type}_feature_names.pkl")
 
         model_files = {
             'sms': 'sms_model.pkl',
