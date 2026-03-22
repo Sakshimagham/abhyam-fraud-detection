@@ -1,4 +1,3 @@
-# feature_engineering/crypto_features.py
 """
 Enhanced Cryptocurrency Fraud Feature Engineering with Multilingual Support
 Detects crypto scams in multiple Indian languages
@@ -13,9 +12,13 @@ from urllib.parse import urlparse
 from .multilingual_utils import MultilingualFeatureExtractor
 from .language_detector import IndianLanguageDetector
 
-BASE_PATH = r"D:\SKM-IMP\SAKSHI PROJECT\final\fraud_ai_system"
-DATA_PATH = os.path.join(BASE_PATH, "data", "processed", "crypto_fraud_preprocessed.csv")
-FEATURE_PATH = os.path.join(BASE_PATH, "feature_engineering")
+# ============================================================================
+# DYNAMIC PATH SETUP – replace absolute Windows paths
+# ============================================================================
+current_dir = os.path.dirname(os.path.abspath(__file__))
+repo_root = os.path.dirname(current_dir)
+DATA_PATH = os.path.join(repo_root, "data", "processed", "crypto_fraud_preprocessed.csv")
+FEATURE_PATH = current_dir   # where vectorizers will be saved
 
 class MultilingualCryptoFeatureExtractor:
     """
@@ -38,7 +41,7 @@ class MultilingualCryptoFeatureExtractor:
         self.multilingual_utils = MultilingualFeatureExtractor()
         self.language_detector = IndianLanguageDetector()
         
-        # Crypto scam keywords in Indian languages
+        # Crypto scam keywords in Indian languages (unchanged)
         self.crypto_scam_keywords = {
             'marathi': {
                 'investment': ['गुंतवणूक', 'पैसे दुप्पट', 'बिटकॉइन', 'क्रिप्टो', 'ट्रेडिंग'],
@@ -84,7 +87,7 @@ class MultilingualCryptoFeatureExtractor:
             }
         }
         
-        # URL-based scam indicators
+        # URL-based scam indicators (unchanged)
         self.url_scam_indicators = {
             'suspicious_tlds': ['.xyz', '.top', '.club', '.online', '.site', '.work', '.date', '.loan'],
             'crypto_related': ['bitcoin', 'btc', 'eth', 'crypto', 'mining', 'wallet', 'exchange'],
@@ -92,13 +95,13 @@ class MultilingualCryptoFeatureExtractor:
             'indian_spellings': ['bitcoiin', 'bitcojn', 'crypt0', 'blockchian', 'wallrt']
         }
         
-        # Indian payment gateway mentions
+        # Indian payment gateway mentions (unchanged)
         self.indian_payment_gateways = [
             'paytm', 'phonepe', 'googlepay', 'gpay', 'amazonpay', 'bhimp',
             'upi', 'rupay', 'netbanking', 'imps', 'neft', 'rtgs'
         ]
         
-        # Crypto scammer tactics in Indian context
+        # Crypto scammer tactics in Indian context (unchanged)
         self.indian_crypto_tactics = [
             'double_money',  # पैसे दुप्पट / பணம் இரட்டிப்பு
             'guaranteed_returns',  # गॅरंटीड रिटर्न्स
