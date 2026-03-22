@@ -1,4 +1,3 @@
-# feature_engineering/call_features.py
 """
 Enhanced Call Transcript Feature Engineering with Multilingual Support
 Supports call analysis in all Indian languages
@@ -13,9 +12,13 @@ from collections import Counter
 from .multilingual_utils import MultilingualFeatureExtractor
 from .language_detector import IndianLanguageDetector
 
-BASE_PATH = r"D:\SKM-IMP\SAKSHI PROJECT\final\fraud_ai_system"
-DATA_PATH = os.path.join(BASE_PATH, "data", "processed", "call_data_cleaned.csv")
-FEATURE_PATH = os.path.join(BASE_PATH, "feature_engineering")
+# ============================================================================
+# DYNAMIC PATH SETUP – replace absolute Windows paths
+# ============================================================================
+current_dir = os.path.dirname(os.path.abspath(__file__))
+repo_root = os.path.dirname(current_dir)
+DATA_PATH = os.path.join(repo_root, "data", "processed", "call_data_cleaned.csv")
+FEATURE_PATH = current_dir   # where scalers will be saved
 
 class MultilingualCallFeatureExtractor:
     """
@@ -38,7 +41,7 @@ class MultilingualCallFeatureExtractor:
         self.multilingual_utils = MultilingualFeatureExtractor()
         self.language_detector = IndianLanguageDetector()
         
-        # Call-specific scam patterns for Indian languages
+        # Call-specific scam patterns for Indian languages (unchanged)
         self.call_scam_patterns = {
             'marathi': {
                 'banking': ['बँक', 'खाते', 'केवाईसी', 'ओटीपी', 'क्रेडिट कार्ड', 'डेबिट कार्ड'],
@@ -70,7 +73,7 @@ class MultilingualCallFeatureExtractor:
             }
         }
         
-        # Common Indian call scam scenarios
+        # Common Indian call scam scenarios (unchanged)
         self.indian_scam_scenarios = [
             'digital_arrest',  # Digital arrest scam
             'kyc_expiry',      # KYC expiry scam
@@ -84,7 +87,7 @@ class MultilingualCallFeatureExtractor:
             'job_offer'        # Fake job offer
         ]
         
-        # Scenario keywords in multiple languages
+        # Scenario keywords in multiple languages (unchanged)
         self.scenario_keywords = {
             'digital_arrest': {
                 'marathi': ['अटक', 'पोलीस', 'केस', 'कोर्ट', 'वॉरंट'],
