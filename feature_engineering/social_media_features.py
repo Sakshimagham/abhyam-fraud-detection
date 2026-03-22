@@ -1,4 +1,3 @@
-# feature_engineering/social_media_features.py
 """
 Enhanced Social Media Fraud Feature Engineering with Multilingual Support
 Detects fake profiles and social media scams in multiple Indian languages
@@ -13,9 +12,13 @@ from datetime import datetime
 from .multilingual_utils import MultilingualFeatureExtractor
 from .language_detector import IndianLanguageDetector
 
-BASE_PATH = r"D:\SKM-IMP\SAKSHI PROJECT\final\fraud_ai_system"
-DATA_PATH = os.path.join(BASE_PATH, "data", "processed", "social_media_preprocessed.csv")
-FEATURE_PATH = os.path.join(BASE_PATH, "feature_engineering")
+# ============================================================================
+# DYNAMIC PATH SETUP – replace absolute Windows paths
+# ============================================================================
+current_dir = os.path.dirname(os.path.abspath(__file__))
+repo_root = os.path.dirname(current_dir)
+DATA_PATH = os.path.join(repo_root, "data", "processed", "social_media_preprocessed.csv")
+FEATURE_PATH = current_dir   # where scalers will be saved
 
 class MultilingualSocialMediaFeatureExtractor:
     """
@@ -38,7 +41,7 @@ class MultilingualSocialMediaFeatureExtractor:
         self.multilingual_utils = MultilingualFeatureExtractor()
         self.language_detector = IndianLanguageDetector()
         
-        # Social media scam keywords in Indian languages
+        # Social media scam keywords in Indian languages (unchanged)
         self.social_scam_keywords = {
             'marathi': {
                 'romance': ['प्रेम', 'लव्ह', 'डेटिंग', 'सिंगल', 'मॅरेज'],
@@ -72,7 +75,7 @@ class MultilingualSocialMediaFeatureExtractor:
             }
         }
         
-        # Profile-based features for fake detection
+        # Profile-based features for fake detection (unchanged)
         self.profile_red_flags = {
             'name_patterns': [
                 r'[0-9]{4,}',  # Many numbers in name
@@ -88,13 +91,13 @@ class MultilingualSocialMediaFeatureExtractor:
             ]
         }
         
-        # Indian social media trends
+        # Indian social media trends (unchanged)
         self.indian_social_media_platforms = [
             'instagram', 'facebook', 'twitter', 'telegram', 'whatsapp',
             'sharechat', 'moj', 'mitron', 'chingari'
         ]
         
-        # Bot-like behavior patterns
+        # Bot-like behavior patterns (unchanged)
         self.bot_patterns = [
             r'(@\w+\s?){3,}',  # Multiple mentions
             r'(#\w+\s?){5,}',  # Multiple hashtags
