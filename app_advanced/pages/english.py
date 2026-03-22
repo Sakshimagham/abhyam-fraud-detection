@@ -6,25 +6,42 @@ import time
 import random
 from datetime import datetime, timedelta
 
-# Set up global exception handler
-def global_excepthook(exctype, value, tb):
-    import streamlit as st
-    st.error(f"**Uncaught exception:** {value}")
-    st.code(''.join(traceback.format_exception(exctype, value, tb)))
-    st.stop()
+# -----------------------------------------------------------------------------
+# PATH SETUP – MUST BE DONE BEFORE ANY PROJECT IMPORTS
+# -----------------------------------------------------------------------------
+# Get the absolute path of the current file
+current_file = os.path.abspath(__file__)
+print(f"[DEBUG] Current file: {current_file}")
 
-sys.excepthook = global_excepthook
+# Compute repository root: go up three levels (pages -> app_advanced -> repo_root)
+repo_root = os.path.dirname(os.path.dirname(os.path.dirname(current_file)))
+print(f"[DEBUG] Repository root: {repo_root}")
 
+# Add repo_root to sys.path (at the front) so that feature_engineering can be found
+if repo_root not in sys.path:
+    sys.path.insert(0, repo_root)
+print(f"[DEBUG] sys.path after adding repo_root: {sys.path}")
+
+# Also add app_advanced (for components) – optional but harmless
+app_advanced_path = os.path.join(repo_root, 'app_advanced')
+if app_advanced_path not in sys.path:
+    sys.path.insert(0, app_advanced_path)
+
+# Check if the feature_engineering folder exists
+feature_engineering_path = os.path.join(repo_root, 'feature_engineering')
+print(f"[DEBUG] feature_engineering exists? {os.path.isdir(feature_engineering_path)}")
+if os.path.isdir(feature_engineering_path):
+    print(f"[DEBUG] Contents: {os.listdir(feature_engineering_path)[:5]}")
+else:
+    print("[DEBUG] feature_engineering directory NOT found!")
+
+# -----------------------------------------------------------------------------
+# Now try to import project modules – catch errors and show details
+# -----------------------------------------------------------------------------
 try:
+    # Standard imports (must come before streamlit if we want to use print)
     import pytesseract
     import platform
-
-    # Set Tesseract path based on operating system
-    if platform.system() == 'Windows':
-        pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-    else:
-        pytesseract.pytesseract.tesseract_cmd = 'tesseract'
-    
     import streamlit as st
     import pandas as pd
     import numpy as np
@@ -33,25 +50,13 @@ try:
     import plotly.graph_objects as go
     from datetime import datetime
 
-    # ============================================
-    # PATH SETUP – REPOSITORY ROOT
-    # ============================================
-    # Get the directory of the current file (pages/)
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    # Go up three levels to get the repository root
-    # (pages -> app_advanced -> repo_root)
-    repo_root = os.path.dirname(os.path.dirname(os.path.dirname(current_dir)))
+    # Set Tesseract path
+    if platform.system() == 'Windows':
+        pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+    else:
+        pytesseract.pytesseract.tesseract_cmd = 'tesseract'
 
-    # Add repo_root to sys.path so Python can find top‑level packages
-    if repo_root not in sys.path:
-        sys.path.insert(0, repo_root)
-
-    # Also add the app_advanced folder itself (for components)
-    app_advanced_path = os.path.join(repo_root, 'app_advanced')
-    if app_advanced_path not in sys.path:
-        sys.path.insert(0, app_advanced_path)
-
-    # Now import project modules (they will be found because repo_root is in sys.path)
+    # Now import our custom modules
     from components.ocr_utils import extract_text_from_image
     from components.company_verifier import extract_company_mentions, verify_sender
     from components.feedback_db import save_feedback
@@ -63,6 +68,31 @@ try:
     from risk_engine.rule_config import HELPLINE_NUMBERS
     from feature_engineering.language_detector import IndianLanguageDetector
 
+    # If we reach here, everything imported successfully
+    print("[DEBUG] All imports succeeded.")
+
+except Exception as e:
+    # If any import fails, print details and re-raise so the app shows error
+    print(f"[DEBUG] Import error: {e}")
+    import traceback
+    traceback.print_exc()
+    raise  # Will be caught by the outer try block (see below)
+
+# =============================================================================
+# Rest of the application (unchanged)
+# =============================================================================
+
+# Set up global exception handler
+def global_excepthook(exctype, value, tb):
+    import streamlit as st
+    st.error(f"**Uncaught exception:** {value}")
+    st.code(''.join(traceback.format_exception(exctype, value, tb)))
+    st.stop()
+
+sys.excepthook = global_excepthook
+
+# Now wrap the rest of the app in a try block to display errors nicely
+try:
     # ============================================
     # PAGE CONFIG
     # ============================================
@@ -1026,7 +1056,7 @@ try:
         st.markdown("""
         <div style="background:rgba(10,12,16,0.6); border-radius:32px; padding:2rem; border:1px solid #2D3A46;">
             <h3 style="color:#FEDD89;">अभयम् – The Fearless Fraud Shield</h3>
-            <p style="color:#EFF7F6;"><strong>Why अभयम्?</strong> In a country where millions face scams in their native languages, we built a system that understands you – whether you speak Hindi, Marathi, Tamil, or any of India’s 10 official languages. Combining advanced machine learning with a powerful rule engine, अभयम् protects 1.4 billion Indians from fraud, one message at a time.</p>
+            <p style="color:#EFF7F6;"><strong>Why अभयम्?</strong> In a country where millions face scams in their native languages, we built a system that understands you – whether you speak Hindi, Marathi, Tamil, or any of India’s 12 official languages. Combining advanced machine learning with a powerful rule engine, अभयम् protects 1.4 billion Indians from fraud, one message at a time.</p>
             <hr style="border-color:#2D3A46;">
             <p><strong style="color:#18B7BE;">👩‍💻 Created by:</strong> <span style="color:#9BB8C9;">Sakshi Shrikrishna Magham</span></p>
             <p><strong style="color:#18B7BE;">🎓 Pursuing:</strong> <span style="color:#9BB8C9;">MSc in Data Science and Artificial Intelligence</span></p>
