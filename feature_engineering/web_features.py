@@ -1,4 +1,3 @@
-# feature_engineering/web_features.py
 """
 Enhanced Website Fraud Feature Engineering with Multilingual Support
 Detects fake/scam websites in multiple Indian languages
@@ -13,9 +12,13 @@ from urllib.parse import urlparse
 from .multilingual_utils import MultilingualFeatureExtractor
 from .language_detector import IndianLanguageDetector
 
-BASE_PATH = r"D:\SKM-IMP\SAKSHI PROJECT\final\fraud_ai_system"
-DATA_PATH = os.path.join(BASE_PATH, "data", "processed", "websites_preprocessed.csv")
-FEATURE_PATH = os.path.join(BASE_PATH, "feature_engineering")
+# ============================================================================
+# DYNAMIC PATH SETUP – replace absolute Windows paths
+# ============================================================================
+current_dir = os.path.dirname(os.path.abspath(__file__))
+repo_root = os.path.dirname(current_dir)
+DATA_PATH = os.path.join(repo_root, "data", "processed", "websites_preprocessed.csv")
+FEATURE_PATH = current_dir   # where vectorizers will be saved
 
 class MultilingualWebsiteFeatureExtractor:
     """
