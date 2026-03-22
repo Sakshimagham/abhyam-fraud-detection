@@ -1,4 +1,3 @@
-# feature_engineering/sms_features.py
 """
 Enhanced SMS Feature Engineering with Multilingual Support
 Supports all Indian languages + Hinglish + Code-mixed text
@@ -13,9 +12,17 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from .multilingual_utils import MultilingualFeatureExtractor
 from .language_detector import IndianLanguageDetector
 
-BASE_PATH = r"D:\SKM-IMP\SAKSHI PROJECT\final\fraud_ai_system"
-DATA_PATH = os.path.join(BASE_PATH, "data", "processed", "sms_preprocessed.csv")
-FEATURE_PATH = os.path.join(BASE_PATH, "feature_engineering")
+# ============================================================================
+# DYNAMIC PATH SETUP – replace absolute Windows paths
+# ============================================================================
+# Get the directory of the current file (feature_engineering/)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+# Go up one level to the repository root
+repo_root = os.path.dirname(current_dir)
+
+# Construct paths relative to the repository root
+DATA_PATH = os.path.join(repo_root, "data", "processed", "sms_preprocessed.csv")
+FEATURE_PATH = current_dir   # where the vectorizers will be saved (same folder as this file)
 
 class MultilingualSMSFeatureExtractor:
     """
@@ -31,7 +38,7 @@ class MultilingualSMSFeatureExtractor:
         self.multilingual_utils = MultilingualFeatureExtractor()
         self.language_detector = IndianLanguageDetector()
         
-        # SMS-specific patterns for Indian languages
+        # SMS-specific patterns for Indian languages (unchanged)
         self.sms_scam_patterns = {
             'marathi': {
                 'banking': ['बँक', 'खाते', 'एटीएम', 'पिन', 'ओटीपी', 'केवाईसी', 'बंद', 'अपडेट'],
@@ -89,13 +96,13 @@ class MultilingualSMSFeatureExtractor:
             }
         }
         
-        # SMS-specific universal patterns
+        # SMS-specific universal patterns (unchanged)
         self.sms_universal_patterns = {
             'short_urls': r'(bit\.ly|tinyurl|goo\.gl|t\.co|rb\.gy|ow\.ly|is\.gd|buff\.ly)',
-            'free_keywords': r'\b(free|free|मुफ्त|मोफत|இலவச|ఉచిత|ಉಚಿತ|സൗജന്യ|મફત|ফ্রી|ਮੁਫ਼ਤ)\b',
+            'free_keywords': r'\b(free|free|मुफ्त|मोफत|இலவச|ఉచిత|ಉಚಿತ|സൗജന്യ|મફત|ফ্রী|ਮੁਫ਼ਤ)\b',
             'winner_keywords': r'\b(win|won|winner|जीत|जिंकलात|வெற்றி|గెలుపు|ಗೆಲುವು|വിജയം|જીત|জয়|ਜਿੱਤ)\b',
-            'claim_keywords': r'\b(claim|redeem|get now|पाएं|मिळवा|பெற|పొందండಿ|ಪಡೆಯಿರಿ|നേടുക|મેળવો|নিন|ਪ੍ਰਾਪਤ)\b',
-            'otp_keywords': r'\b(otp|एकबारगी|ओटीபி|ஓடிபி|ఓటిపి|ಒಟಿಪി|ഒടിപി|ઓટીપી|ওটিপি|ਓਟੀਪੀ)\b',
+            'claim_keywords': r'\b(claim|redeem|get now|पाएं|मिळवा|பெற|పొందండి|ಪಡೆಯಿರಿ|നേടുക|મેળવો|নিন|ਪ੍ਰਾਪਤ)\b',
+            'otp_keywords': r'\b(otp|एकबारगी|ओटीपी|ஓடிபி|ఓటిపి|ಒಟಿಪಿ|ഒടിപി|ઓટીપી|ওটিপি|ਓਟੀਪੀ)\b',
             'kyc_keywords': r'\b(kyc|केवाईसी|கேஒய்சி|కేవైసీ|ಕೆವೈಸಿ|കെവൈസി|કેવાયસી|কেওয়াইসি|ਕੇਵਾਈਸੀ)\b'
         }
         
