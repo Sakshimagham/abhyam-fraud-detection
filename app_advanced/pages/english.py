@@ -77,7 +77,7 @@ except Exception as e:
     raise  # Will be caught by the outer try block (see below)
 
 # =============================================================================
-# Rest of the application (unchanged)
+# Rest of the application
 # =============================================================================
 
 # Set up global exception handler
@@ -475,21 +475,21 @@ try:
             print("[DEBUG] models folder NOT FOUND!")
 
         model_files = {
-        'sms': 'sms_model.pkl',
-        'call': 'call_model.pkl',
-        'crypto': 'crypto_model.pkl',
-        'job': 'fake_jobs_model.pkl',
-        'social': 'social_media_model.pkl',
-        'website': 'web_model.pkl'
-         }
-         scaler_files = {
-        'sms': 'sms_scaler.pkl',
-        'call': 'call_scaler.pkl',
-        'crypto': 'crypto_scaler.pkl',
-        'job': 'fake_jobs_scaler.pkl',
-        'social': 'social_media_scaler.pkl',
-        'website': 'web_scaler.pkl'
-         }
+            'sms': 'sms_model.pkl',
+            'call': 'call_model.pkl',
+            'crypto': 'crypto_model.pkl',
+            'job': 'fake_jobs_model.pkl',
+            'social': 'social_media_model.pkl',
+            'website': 'web_model.pkl'
+        }
+        scaler_files = {
+            'sms': 'sms_scaler.pkl',
+            'call': 'call_scaler.pkl',
+            'crypto': 'crypto_scaler.pkl',
+            'job': 'fake_jobs_scaler.pkl',
+            'social': 'social_media_scaler.pkl',
+            'website': 'web_scaler.pkl'
+        }
 
         for ft, fname in model_files.items():
             model_path = os.path.join(models_path, fname)
@@ -508,6 +508,7 @@ try:
             else:
                 models[ft] = None
         return models
+
     @st.cache_resource
     def init_system():
         router = get_feature_router()
@@ -528,10 +529,10 @@ try:
             model_data = models[fraud_type]
             model = model_data['model']
             scaler = model_data['scaler']
-            
-            models_path = os.path.join(repo_root, "models")  # ← consistent
+
+            models_path = os.path.join(repo_root, "models")
             feature_names_path = os.path.join(models_path, f"{fraud_type}_feature_names.pkl")
-            
+
             if os.path.exists(feature_names_path):
                 feature_names = joblib.load(feature_names_path)
                 row_df = pd.DataFrame([features])
@@ -546,10 +547,10 @@ try:
                         feature_vector = feature_vector[:, :expected]
                     else:
                         feature_vector = np.pad(feature_vector, ((0,0),(0,expected-feature_vector.shape[1])), mode='constant')
-            
+
             if scaler is not None:
                 feature_vector = scaler.transform(feature_vector)
-            
+
             if hasattr(model, 'predict_proba'):
                 proba = model.predict_proba(feature_vector)[0]
                 ml_prob = proba[1] if len(proba) == 2 else proba[0]
@@ -584,14 +585,14 @@ try:
             </div>
         </div>
         """, unsafe_allow_html=True)
-        
+
         st.markdown("---")
         st.markdown(f"### {TEXTS['login']}")
         if 'logged_in' not in st.session_state:
             st.session_state.logged_in = False
         if 'username' not in st.session_state:
             st.session_state.username = ''
-    
+
         if not st.session_state.logged_in:
             # Show login button that redirects to login page
             if st.button("🔐 Click to Login", use_container_width=True):
@@ -608,7 +609,7 @@ try:
                 st.rerun()
         st.markdown("---")
         st.markdown(f"### {TEXTS['language']}")
-        
+
         languages = {
             'English': 'english.py',
             'मराठी': 'marathi.py',
@@ -624,7 +625,7 @@ try:
         selected_lang = st.selectbox("Select Language", list(languages.keys()), index=0)
         if selected_lang != "English":
             st.switch_page(f"pages/{languages[selected_lang]}")
-        
+
         st.markdown("---")
         st.markdown(f"### {TEXTS['fraud_type']}")
         fraud_type = st.radio(
@@ -635,7 +636,7 @@ try:
                                    'job':TEXTS['job'], 'social':TEXTS['social'], 'website':TEXTS['website']}[x],
             index=0
         )
-        
+
         st.markdown("---")
         st.markdown(f"### {TEXTS['today_stats']}")
         col1, col2 = st.columns(2)
@@ -648,7 +649,7 @@ try:
             st.metric(TEXTS['active_users'], "5,678", "+23%")
         with col2:
             st.metric(TEXTS['languages'], "10", "🇮🇳")
-        
+
         # ---- DEBUG: Show which models loaded ----
         st.markdown("---")
         st.markdown("### 🔍 Model Debug")
@@ -760,15 +761,15 @@ try:
     # ============================================
     with tabs[0]:
         col_input, col_output = st.columns([2, 1.5])
-        
+
         with col_input:
             st.markdown('<div class="input-card">', unsafe_allow_html=True)
             st.markdown("### 📥 Input", unsafe_allow_html=True)
-            
+
             method = st.radio("Choose input method", ["Text", "Image", "Email"], horizontal=True)
             text_input = ""
             sender_id = ""
-            
+
             if method == "Text":
                 text_input = st.text_area(TEXTS['enter_sms'], height=150, placeholder=TEXTS['sms_placeholder'])
                 sender_id = st.text_input(TEXTS['sender_id'], placeholder="e.g., BANKALERT")
@@ -787,7 +788,7 @@ try:
             else:  # Email
                 text_input = st.text_area("Email body", height=150)
                 sender_id = st.text_input("Sender Email", placeholder="sender@example.com")
-            
+
             col_btn1, col_btn2 = st.columns(2)
             with col_btn1:
                 if st.button("🔍 Detect Language", use_container_width=True):
@@ -812,7 +813,7 @@ try:
                             input_data = {'text': text_input, 'sender_id': sender_id}
                             features = router.extract_features(fraud_type, input_data)
                             detected_lang = features.get('detected_language', 'unknown')
-                            
+
                             # ---- FORCE ML MODEL: always try, ignore language ----
                             try:
                                 ml_prob, model_source = get_ml_prediction(fraud_type, input_data, features)
@@ -820,20 +821,20 @@ try:
                                 st.sidebar.write(f"ML error: {e}")
                                 ml_prob = 0.5
                                 model_source = "Rule Engine only"
-                            
+
                             # Debug output in sidebar
                             st.sidebar.write(f"ML prob: {ml_prob:.2f}, source: {model_source}")
                             # -----------------------------------------------------
-                            
+
                             rule_score, reasons, helplines = rule_engine.calculate_risk(fraud_type, input_data, detected_lang)
-                            
+
                             if "ML" in model_source:
                                 combined = (ml_prob * 0.7) + (min(rule_score/100, 1.0) * 0.3)
                             else:
                                 combined = min(rule_score/100, 1.0)
-                            
+
                             result = rule_engine.combine_risk(combined, rule_score, detected_lang, features.get('is_code_mixed', False))
-                            
+
                             st.session_state.results = {
                                 'text': text_input,
                                 'sender': sender_id,
@@ -846,12 +847,12 @@ try:
                                 'detected_lang': detected_lang
                             }
             st.markdown('</div>', unsafe_allow_html=True)
-        
+
         with col_output:
             if st.session_state.results:
                 res = st.session_state.results
                 result = res['result']
-                
+
                 companies = extract_company_mentions(res['text'])
                 if companies:
                     st.markdown("### 🏢 Company Verification")
@@ -863,7 +864,7 @@ try:
                                 st.success("✅ Sender domain matches")
                             else:
                                 st.warning("⚠️ Sender domain does NOT match")
-                
+
                 risk_level = result['risk_level']
                 if risk_level == 'HIGH':
                     st.markdown(f'<div class="risk-high"><h3>{TEXTS["high_risk"]}</h3></div>', unsafe_allow_html=True)
@@ -871,21 +872,21 @@ try:
                     st.markdown(f'<div class="risk-medium"><h3>{TEXTS["medium_risk"]}</h3></div>', unsafe_allow_html=True)
                 else:
                     st.markdown(f'<div class="risk-low"><h3>{TEXTS["low_risk"]}</h3></div>', unsafe_allow_html=True)
-                
+
                 st.progress(result['final_score']/100)
                 st.write(f"**{TEXTS['risk_score']}:** {result['final_score']:.1f}%")
                 st.info(result['user_message'])
-                
+
                 with st.expander(TEXTS['detailed_analysis']):
                     for r in res['reasons'][:5]:
                         msg = r.get('message', str(r)) if isinstance(r, dict) else str(r)
                         st.write(f"- {msg}")
-                
+
                 if res['helplines']:
                     st.markdown(f"### {TEXTS['helplines']}")
                     for h in res['helplines'][:3]:
                         st.write(f"**{h}**")
-                
+
                 if st.session_state.username:
                     st.markdown(f"### {TEXTS['share_alert']} / Feedback")
                     col_f1, col_f2, col_f3 = st.columns(3)
@@ -899,14 +900,14 @@ try:
                     with col_f3:
                         if st.button("🔗 Proof link"):
                             st.session_state.show_proof = True
-                    
+
                     if st.session_state.show_feedback:
                         comment = st.text_area("What went wrong?")
                         if st.button("Submit feedback"):
                             save_feedback(res['text'], res['ml_prob'], res['rule_score'], result['final_score'], False, comment, "")
                             st.success("Feedback recorded")
                             st.session_state.show_feedback = False
-                    
+
                     if st.session_state.show_proof:
                         proof = st.text_input("Paste official link")
                         if st.button("Submit proof"):
@@ -915,7 +916,7 @@ try:
                             st.session_state.show_proof = False
                 else:
                     st.info("Please log in to provide feedback.")
-                
+
                 share_text = f"I checked this message with अभयम्. Risk: {result['final_score']}% ({risk_level}). Check it yourself!"
                 col_s1, col_s2, col_s3 = st.columns(3)
                 with col_s1:
@@ -938,7 +939,7 @@ try:
     # ============================================
     with tabs[2]:
         st.markdown(f"<h2>{TEXTS['help']}</h2>", unsafe_allow_html=True)
-        
+
         helplines_data = HELPLINE_NUMBERS if isinstance(HELPLINE_NUMBERS, dict) else {
             "National": {"cyber_crime": "1930", "women_helpline": "1091", "child_helpline": "1098", "police": "100", "ambulance": "102", "disaster": "108"},
             "Maharashtra": {"mumbai_cyber": "022-22620111", "pune_cyber": "020-26124220", "nagpur_cyber": "0712-2562111", "thane_cyber": "022-25341234", "women_helpline": "1091", "police": "100"},
@@ -953,7 +954,7 @@ try:
             "Delhi": {"delhi_cyber": "011-23456789", "women_helpline": "1091"},
             "Odisha": {"bhubaneswar_cyber": "0674-2345678", "cuttack_cyber": "0671-2345678"}
         }
-        
+
         states = list(helplines_data.keys())
         cols = st.columns(2)
         for i, state in enumerate(states):
@@ -974,7 +975,7 @@ try:
     # ============================================
     with tabs[3]:
         st.markdown(f"<h2>{TEXTS['stats']}</h2>", unsafe_allow_html=True)
-        
+
         dates = pd.date_range(end=datetime.now(), periods=30, freq='D')
         fraud_counts = np.random.poisson(lam=50, size=30) + np.sin(np.linspace(0, 3*np.pi, 30))*20
         fraud_counts = np.maximum(fraud_counts, 0).astype(int)
@@ -992,7 +993,7 @@ try:
 
         risk_threshold = st.slider("Risk Threshold (%)", 0, 100, 50)
 
-        filtered_df = df[(df['Date'] >= pd.Timestamp(date_range[0])) & 
+        filtered_df = df[(df['Date'] >= pd.Timestamp(date_range[0])) &
                          (df['Date'] <= pd.Timestamp(date_range[1])) &
                          (df['Type'].isin(fraud_types))]
 
@@ -1022,7 +1023,7 @@ try:
     # ============================================
     with tabs[4]:
         st.markdown(f"<h2>{TEXTS['community']}</h2>", unsafe_allow_html=True)
-        
+
         posts = load_posts()
         if not posts.empty:
             for _, row in posts.sort_values('timestamp', ascending=False).iterrows():
@@ -1039,7 +1040,7 @@ try:
                 """, unsafe_allow_html=True)
         else:
             st.info("No posts yet. Be the first to share!")
-        
+
         if st.session_state.username:
             st.markdown(f"### {TEXTS['new_post']}")
             with st.form("new_post_form"):
