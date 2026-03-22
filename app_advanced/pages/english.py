@@ -604,6 +604,14 @@ try:
             st.metric(TEXTS['active_users'], "5,678", "+23%")
         with col2:
             st.metric(TEXTS['languages'], "10", "🇮🇳")
+        
+        # ---- DEBUG: Show which models loaded ----
+        st.markdown("---")
+        st.markdown("### 🔍 Model Debug")
+        st.write("Models loaded:")
+        for k, v in models.items():
+            st.write(f"{k}: {'✅' if v is not None else '❌'}")
+        # ----------------------------------------
 
     # ============================================
     # MAIN CONTENT WRAPPED IN UNIFIED BOX
@@ -704,7 +712,7 @@ try:
     """, unsafe_allow_html=True)
 
     # ============================================
-    # TAB 1: DETECTOR (unchanged functionality)
+    # TAB 1: DETECTOR (forced ML model)
     # ============================================
     with tabs[0]:
         col_input, col_output = st.columns([2, 1.5])
@@ -761,11 +769,17 @@ try:
                             features = router.extract_features(fraud_type, input_data)
                             detected_lang = features.get('detected_language', 'unknown')
                             
-                            if detected_lang in ['english', 'unknown_latin']:
+                            # ---- FORCE ML MODEL: always try, ignore language ----
+                            try:
                                 ml_prob, model_source = get_ml_prediction(fraud_type, input_data, features)
-                            else:
+                            except Exception as e:
+                                st.sidebar.write(f"ML error: {e}")
                                 ml_prob = 0.5
                                 model_source = "Rule Engine only"
+                            
+                            # Debug output in sidebar
+                            st.sidebar.write(f"ML prob: {ml_prob:.2f}, source: {model_source}")
+                            # -----------------------------------------------------
                             
                             rule_score, reasons, helplines = rule_engine.calculate_risk(fraud_type, input_data, detected_lang)
                             
