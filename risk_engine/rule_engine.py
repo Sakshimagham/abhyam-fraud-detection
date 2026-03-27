@@ -2,21 +2,30 @@
 """
 Enhanced Rule Engine with Multilingual Support for ALL Indian Languages
 Language-aware rules with regional context and code-mixed text handling
+Includes detection for:
+- SMS/Email (banking, prize, govt, job, crypto, urgency)
+- Call (digital arrest, KYC, police impersonation)
+- Crypto (double money, guaranteed returns, fake platforms, pig butchering, pay-to-withdraw)
+- Fake Job (task scams, advance fee, work-from-home)
+- Social Media (romance scams, giveaways, account hijack)
+- Website (suspicious TLDs, brand impersonation, SSL)
 """
 
 import re
 from .rule_config import (
     MARATHI_PATTERNS, HINDI_PATTERNS, TAMIL_PATTERNS, TELUGU_PATTERNS,
     KANNADA_PATTERNS, MALAYALAM_PATTERNS, GUJARATI_PATTERNS, BENGALI_PATTERNS,
-    PUNJABI_PATTERNS, ODIA_PATTERNS, HINGLISH_PATTERNS,
+    PUNJABI_PATTERNS, ODIA_PATTERNS, ENGLISH_PATTERNS, HINGLISH_PATTERNS,
     TRUSTED_SENDER_PATTERNS, SUSPICIOUS_PATTERNS, LANGUAGE_WEIGHTS,
     RULE_WEIGHTS, HELPLINE_NUMBERS, RESPONSE_TEMPLATES, REGION_PATTERNS,
-    SMS_PATTERNS, CALL_PATTERNS, CRYPTO_PATTERNS, INDIAN_CONTEXT
+    SMS_PATTERNS, CALL_PATTERNS, CRYPTO_PATTERNS, JOB_FRAUD_PATTERNS,
+    SOCIAL_MEDIA_PATTERNS, WEBSITE_PATTERNS, INDIAN_CONTEXT
 )
 
 class MultilingualRuleEngine:
     """
     Enhanced rule engine with support for multiple Indian languages
+    and all major fraud types.
     """
     
     def __init__(self):
@@ -31,6 +40,7 @@ class MultilingualRuleEngine:
             'bengali': BENGALI_PATTERNS,
             'punjabi': PUNJABI_PATTERNS,
             'odia': ODIA_PATTERNS,
+            'english': ENGLISH_PATTERNS,
             'hinglish': HINGLISH_PATTERNS
         }
         
@@ -96,7 +106,7 @@ class MultilingualRuleEngine:
         """
         Get scam patterns for detected language
         """
-        return self.all_language_patterns.get(language, {})
+        return self.all_language_patterns.get(language, ENGLISH_PATTERNS)
     
     def detect_region(self, text):
         """
@@ -116,6 +126,34 @@ class MultilingualRuleEngine:
                     break
         
         return detected_regions
+    
+    # ==========================================
+    # URL & Link Analysis (Common)
+    # ==========================================
+    
+    def analyze_urls(self, text):
+        """
+        Extract and analyze URLs in text. Returns (score, reasons)
+        """
+        urls = re.findall(r'https?://[^\s]+', text)
+        score = 0
+        reasons = []
+        
+        for url in urls:
+            url_lower = url.lower()
+            # Shortened URLs
+            for short in SMS_PATTERNS['short_urls']:
+                if short in url_lower:
+                    score += RULE_WEIGHTS['suspicious_link']
+                    reasons.append(f"Suspicious shortened URL: {short}")
+                    break
+            # Suspicious TLDs
+            for tld in SUSPICIOUS_PATTERNS['suspicious_tlds']:
+                if url_lower.endswith(tld):
+                    score += RULE_WEIGHTS['suspicious_link']
+                    reasons.append(f"Suspicious domain TLD: {tld}")
+                    break
+        return score, reasons, urls
     
     # ==========================================
     # SMS RULES (Multilingual)
@@ -140,16 +178,12 @@ class MultilingualRuleEngine:
         # Apply language-specific patterns
         lang_patterns = self.get_language_patterns(detected_lang)
         
-        # Safely iterate through patterns
         for fraud_type, pattern_data in lang_patterns.items():
-            # Skip if pattern_data is not a dictionary or doesn't have keywords
             if not isinstance(pattern_data, dict):
                 continue
-                
             keywords = pattern_data.get('keywords', [])
             if not keywords:
                 continue
-                
             for keyword in keywords:
                 if keyword in text:
                     score += pattern_data.get('weight', 20)
@@ -177,7 +211,6 @@ class MultilingualRuleEngine:
             SMS_PATTERNS['urgency_indicators'] +
             ['तातडीचे', 'लगेच', 'तुरंत', 'अभी', 'जल्दी', 'अवसर', 'அவசரம்', 'అత్యవసరం']
         )
-        
         urgent_matches = 0
         for word in urgency_indicators:
             if word.lower() in text_lower:
@@ -206,7 +239,6 @@ class MultilingualRuleEngine:
                 if re.match(pattern, sender_id):
                     trusted = True
                     break
-            
             if not trusted:
                 score += RULE_WEIGHTS['unknown_sender']
                 reasons.append({
@@ -224,6 +256,16 @@ class MultilingualRuleEngine:
                     'message': f'ID proof mentioned: {id_type}',
                     'language': 'common'
                 })
+        
+        # URL deep analysis
+        url_score, url_reasons, _ = self.analyze_urls(text)
+        score += url_score
+        for r in url_reasons:
+            reasons.append({
+                'code': 'RULES-SMS-URL-01',
+                'message': r,
+                'language': 'common'
+            })
         
         return score, reasons, list(set(helplines)), detected_lang, is_code_mixed
     
@@ -249,7 +291,6 @@ class MultilingualRuleEngine:
                 for keyword in keywords:
                     if keyword in transcript:
                         scenario_score += 20
-                        
                         if scenario == 'digital_arrest':
                             reasons.append({
                                 'code': 'RULES-CALL-SCENARIO-01',
@@ -257,7 +298,6 @@ class MultilingualRuleEngine:
                                 'language': lang
                             })
                             helplines.append(HELPLINE_NUMBERS['national']['police'])
-                        
                         elif scenario == 'kyc_expiry':
                             reasons.append({
                                 'code': 'RULES-CALL-SCENARIO-02',
@@ -265,7 +305,6 @@ class MultilingualRuleEngine:
                                 'language': lang
                             })
                             helplines.append(HELPLINE_NUMBERS['national']['cyber_crime'])
-            
             score += scenario_score
         
         # Call duration analysis
@@ -337,27 +376,37 @@ class MultilingualRuleEngine:
                         'language': lang
                     })
         
+        # Fake platform indicators (pay-to-withdraw)
+        for keyword in CRYPTO_PATTERNS['fake_platform']['english']:
+            if keyword.lower() in text_lower:
+                score += RULE_WEIGHTS['pay_to_withdraw']
+                reasons.append({
+                    'code': 'RULES-CRYPTO-03',
+                    'message': f'Fake platform indicator: {keyword}',
+                    'language': 'common'
+                })
+                helplines.append(HELPLINE_NUMBERS['national']['cyber_crime'])
+        
+        # Pig butchering indicators
+        for keyword in CRYPTO_PATTERNS['pig_butchering']['english']:
+            if keyword.lower() in text_lower:
+                score += RULE_WEIGHTS['crypto_promise']
+                reasons.append({
+                    'code': 'RULES-CRYPTO-04',
+                    'message': f'Pig butchering scam pattern: {keyword}',
+                    'language': 'common'
+                })
+        
         # URL analysis
         if url:
-            # Check for suspicious TLDs
-            for tld in SUSPICIOUS_PATTERNS['suspicious_tlds']:
-                if url.endswith(tld):
-                    score += 20
-                    reasons.append({
-                        'code': 'RULES-CRYPTO-03',
-                        'message': f'Suspicious TLD: {tld}',
-                        'language': 'common'
-                    })
-            
-            # Check for shortened URLs
-            for shortener in SUSPICIOUS_PATTERNS['shortened_url_services']:
-                if shortener in url:
-                    score += 25
-                    reasons.append({
-                        'code': 'RULES-CRYPTO-04',
-                        'message': f'Shortened URL: {shortener}',
-                        'language': 'common'
-                    })
+            url_score, url_reasons, _ = self.analyze_urls(url)
+            score += url_score
+            for r in url_reasons:
+                reasons.append({
+                    'code': 'RULES-CRYPTO-URL',
+                    'message': r,
+                    'language': 'common'
+                })
         
         return score, reasons, list(set(helplines))
     
@@ -395,13 +444,35 @@ class MultilingualRuleEngine:
                         'language': detected_lang
                     })
         
+        # Task scam patterns
+        for keyword in JOB_FRAUD_PATTERNS['task_scam']['english']:
+            if keyword.lower() in full_text:
+                score += RULE_WEIGHTS['task_scam']
+                reasons.append({
+                    'code': 'RULES-JOB-02',
+                    'message': f'Task scam pattern: {keyword}',
+                    'language': 'common'
+                })
+                helplines.append(HELPLINE_NUMBERS['national']['cyber_crime'])
+        
+        # Advance fee patterns
+        for keyword in JOB_FRAUD_PATTERNS['advance_fee']['english']:
+            if keyword.lower() in full_text:
+                score += RULE_WEIGHTS['job_offer_scam']
+                reasons.append({
+                    'code': 'RULES-JOB-03',
+                    'message': f'Advance fee request: {keyword}',
+                    'language': 'common'
+                })
+                helplines.append(HELPLINE_NUMBERS['national']['cyber_crime'])
+        
         # Check for free email domains
         if email:
             for domain in SUSPICIOUS_PATTERNS['free_email_domains']:
                 if domain in email:
                     score += 15
                     reasons.append({
-                        'code': 'RULES-JOB-02',
+                        'code': 'RULES-JOB-04',
                         'message': f'Free email domain used: {domain}',
                         'language': 'common'
                     })
@@ -410,7 +481,7 @@ class MultilingualRuleEngine:
         if not company or len(company) < 3:
             score += 20
             reasons.append({
-                'code': 'RULES-JOB-03',
+                'code': 'RULES-JOB-05',
                 'message': 'Company name missing or too short',
                 'language': 'common'
             })
@@ -438,13 +509,44 @@ class MultilingualRuleEngine:
         if not detected_lang and bio:
             detected_lang, is_code_mixed, _ = self.detect_language_from_text(bio)
         
+        # Romance scam patterns
+        for keyword in SOCIAL_MEDIA_PATTERNS['romance_scam']['english']:
+            if keyword in bio.lower():
+                score += RULE_WEIGHTS['romance_scam']
+                reasons.append({
+                    'code': 'RULES-SOCIAL-01',
+                    'message': f'Romance scam indicator: {keyword}',
+                    'language': 'common'
+                })
+                helplines.append(HELPLINE_NUMBERS['national']['women_helpline'])
+        
+        # Giveaway scam patterns
+        for keyword in SOCIAL_MEDIA_PATTERNS['giveaway_scam']['english']:
+            if keyword in bio.lower():
+                score += 25
+                reasons.append({
+                    'code': 'RULES-SOCIAL-02',
+                    'message': f'Giveaway scam pattern: {keyword}',
+                    'language': 'common'
+                })
+        
+        # Account hijack patterns
+        for keyword in SOCIAL_MEDIA_PATTERNS['account_hijack']['english']:
+            if keyword in bio.lower():
+                score += RULE_WEIGHTS['account_hijack']
+                reasons.append({
+                    'code': 'RULES-SOCIAL-03',
+                    'message': f'Account hijack indicator: {keyword}',
+                    'language': 'common'
+                })
+        
         # Follower/Following ratio analysis
         if following > 0:
             ratio = followers / following
-            if ratio < 0.1 and followers > 100:  # Following many but few followers
+            if ratio < 0.1 and followers > 100:
                 score += 25
                 reasons.append({
-                    'code': 'RULES-SOCIAL-01',
+                    'code': 'RULES-SOCIAL-04',
                     'message': 'Suspicious follower/following ratio',
                     'language': 'common'
                 })
@@ -453,16 +555,16 @@ class MultilingualRuleEngine:
         if account_age < 7 and posts > 50:
             score += 20
             reasons.append({
-                'code': 'RULES-SOCIAL-02',
+                'code': 'RULES-SOCIAL-05',
                 'message': 'New account with unusually high post count',
                 'language': 'common'
             })
         
         # Bio with suspicious links
-        if bio and ('bit.ly' in bio or 'tinyurl' in bio):
+        if bio and any(short in bio for short in SMS_PATTERNS['short_urls']):
             score += 25
             reasons.append({
-                'code': 'RULES-SOCIAL-03',
+                'code': 'RULES-SOCIAL-06',
                 'message': 'Suspicious link in bio',
                 'language': 'common'
             })
@@ -499,15 +601,15 @@ class MultilingualRuleEngine:
                 helplines.append(HELPLINE_NUMBERS['national']['cyber_crime'])
         
         # Check for brand impersonation
-        brands = ['sbi', 'hdfc', 'icici', 'paytm', 'google', 'amazon', 'flipkart']
-        for brand in brands:
-            if brand in url_lower and not any(trusted in url_lower for trusted in ['.gov.in', '.org.in', '.ac.in']):
-                score += 25
-                reasons.append({
-                    'code': 'RULES-WEB-02',
-                    'message': f'Possible brand impersonation: {brand}',
-                    'language': 'common'
-                })
+        for brand, patterns in WEBSITE_PATTERNS['brand_impersonation'].items():
+            for pattern in patterns:
+                if pattern in url_lower and not any(trusted in url_lower for trusted in ['.gov.in', '.org.in', '.ac.in']):
+                    score += RULE_WEIGHTS['brand_impersonation']
+                    reasons.append({
+                        'code': 'RULES-WEB-02',
+                        'message': f'Possible brand impersonation: {brand}',
+                        'language': 'common'
+                    })
         
         # Trust data analysis
         if trust_data:
@@ -518,7 +620,6 @@ class MultilingualRuleEngine:
                     'message': 'Domain registered recently (<30 days)',
                     'language': 'common'
                 })
-            
             if not trust_data.get('has_ssl', 0):
                 score += 20
                 reasons.append({
@@ -526,7 +627,6 @@ class MultilingualRuleEngine:
                     'message': 'No SSL certificate (not HTTPS)',
                     'language': 'common'
                 })
-            
             if not trust_data.get('has_contact', 0):
                 score += 15
                 reasons.append({
@@ -692,27 +792,21 @@ class MultilingualRuleEngine:
         return response
 
 
+# ==========================================
 # Test the rule engine
+# ==========================================
 if __name__ == "__main__":
     engine = MultilingualRuleEngine()
     
-    # Test cases in different languages
+    # Test cases for all fraud types
     test_cases = [
         {
             'type': 'sms',
             'data': {
-                'text': 'तुमचे बँक खाते बंद होणार आहे. लगेच KYC अपडेट करा: bit.ly/bankupdate',
-                'sender_id': 'BANKALERT'
+                'text': '🎬 CONGRATULATIONS! You have won ₹5,00,000 + iPhone 16! Click here to claim: https://short.link/xyz123',
+                'sender_id': 'WINNER'
             },
-            'ml_prob': 0.85
-        },
-        {
-            'type': 'sms',
-            'data': {
-                'text': 'Aapka bank account band ho raha hai. Turant OTP share karein',
-                'sender_id': 'UNKNOWN'
-            },
-            'ml_prob': 0.75
+            'ml_prob': 0.3  # Simulate low ML score
         },
         {
             'type': 'call',
@@ -721,12 +815,50 @@ if __name__ == "__main__":
                 'caller_id': '+1234567890',
                 'duration': 360
             },
-            'ml_prob': 0.9
+            'ml_prob': 0.4
+        },
+        {
+            'type': 'crypto',
+            'data': {
+                'text': 'Double your Bitcoin in 24 hours! Guaranteed returns! Pay only 0.01 BTC to unlock withdrawal.',
+                'url': 'https://crypto-scam.xyz'
+            },
+            'ml_prob': 0.2
+        },
+        {
+            'type': 'job',
+            'data': {
+                'title': 'Work from home data entry',
+                'description': 'Earn ₹15,000/day by liking YouTube videos. Join Telegram group. Registration fee ₹500.',
+                'company': '',
+                'email': 'job@scam.com'
+            },
+            'ml_prob': 0.25
+        },
+        {
+            'type': 'social',
+            'data': {
+                'bio': 'Looking for love! Send me gift cards and I will visit you. DM for more.',
+                'followers': 50,
+                'following': 5000,
+                'posts': 10,
+                'account_age': 2
+            },
+            'ml_prob': 0.5
+        },
+        {
+            'type': 'website',
+            'data': {
+                'url': 'https://sbi-update.xyz',
+                'content': 'Update your KYC immediately or your account will be blocked.',
+                'trust_data': {'domain_age': 5, 'has_ssl': False, 'has_contact': False}
+            },
+            'ml_prob': 0.6
         }
     ]
     
     print("=" * 100)
-    print("MULTILINGUAL RULE ENGINE TEST")
+    print("MULTILINGUAL RULE ENGINE TEST - ALL FRAUD TYPES")
     print("=" * 100)
     
     for i, test in enumerate(test_cases, 1):
@@ -738,8 +870,10 @@ if __name__ == "__main__":
             text = test['data']['text']
         elif 'transcript' in test['data']:
             text = test['data']['transcript']
+        elif 'bio' in test['data']:
+            text = test['data']['bio']
         else:
-            text = ''
+            text = test['data'].get('url', '')
         
         detected_lang, is_code_mixed, conf = engine.detect_language_from_text(text)
         print(f"📝 Text: {text[:100]}...")
@@ -753,7 +887,7 @@ if __name__ == "__main__":
         
         print(f"\n⚖️ Rule Score: {rule_score}")
         print(f"📋 Reasons ({len(reasons)}):")
-        for r in reasons[:3]:  # Show first 3 reasons
+        for r in reasons[:5]:  # Show first 5 reasons
             if isinstance(r, dict):
                 print(f"  • {r.get('message', str(r))}")
             else:
