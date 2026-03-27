@@ -1,12 +1,12 @@
+# risk_engine/rule_config.py
 """
 Enhanced Rule Configuration – Complete for All Fraud Types & 10 Languages
-Sources: Real-world scams from Reddit, cyber crime reports, crypto safety intelligence
 Fraud Types: SMS/Email, Call, Crypto, Fake Job, Social Media, Website
-Languages: Marathi, Hindi, Tamil, Telugu, Kannada, Malayalam, Gujarati, Bengali, English, Punjabi
+Languages: Marathi, Hindi, Tamil, Telugu, Kannada, Malayalam, Gujarati, Bengali, Punjabi, English, Hinglish
 """
 
 # ============================================
-# 1. LANGUAGE-SPECIFIC SCAM PATTERNS – ENHANCED
+# 1. LANGUAGE-SPECIFIC SCAM PATTERNS
 # ============================================
 
 # ---- MARATHI (मराठी) ----
@@ -81,7 +81,7 @@ MARATHI_PATTERNS = {
     }
 }
 
-# ---- HINDI (हिंदी) - Enhanced ----
+# ---- HINDI (हिंदी) ----
 HINDI_PATTERNS = {
     'banking_fraud': {
         'keywords': [
@@ -657,7 +657,7 @@ PUNJABI_PATTERNS = {
     }
 }
 
-# ---- ENGLISH & HINGLISH (Enhanced with Reddit Scam Terms) ----
+# ---- ENGLISH & HINGLISH ----
 ENGLISH_PATTERNS = {
     'banking_fraud': {
         'keywords': [
@@ -809,7 +809,7 @@ HINGLISH_PATTERNS = {
 }
 
 # ============================================
-# 2. FRAUD TYPE SPECIFIC PATTERNS (All Modules)
+# 2. FRAUD TYPE SPECIFIC PATTERNS
 # ============================================
 
 # SMS/Email patterns
@@ -822,7 +822,7 @@ SMS_PATTERNS = {
     'urgency_indicators': ['urgent', 'immediate', 'today', 'now', 'expire', 'last chance', 'within']
 }
 
-# Call patterns (Digital Arrest, KYC, etc.)
+# Call patterns
 CALL_PATTERNS = {
     'digital_arrest': {
         'hindi': ['गिरफ्तारी', 'पुलिस', 'केस', 'वारंट', 'सीबीआई', 'ईडी', 'जांच'],
@@ -854,7 +854,7 @@ CALL_PATTERNS = {
     }
 }
 
-# Crypto-specific patterns (enhanced with Reddit findings)
+# Crypto-specific patterns
 CRYPTO_PATTERNS = {
     'double_money': {
         'english': ['double', 'double money', 'double your money', '2x', '100% return'],
@@ -887,7 +887,7 @@ CRYPTO_PATTERNS = {
     }
 }
 
-# Job fraud patterns (enhanced with Reddit)
+# Job fraud patterns
 JOB_FRAUD_PATTERNS = {
     'task_scam': {
         'english': [
@@ -972,7 +972,7 @@ SUSPICIOUS_PATTERNS = {
 }
 
 # ============================================
-# 5. RULE WEIGHTS (Enhanced)
+# 5. RULE WEIGHTS
 # ============================================
 
 RULE_WEIGHTS = {
@@ -989,13 +989,13 @@ RULE_WEIGHTS = {
     'job_offer_scam': 35,
     'crypto_promise': 35,
     'phishing_attempt': 30,
-    'pay_to_withdraw': 40,          # New: Crypto pay-to-withdraw pattern
-    'fake_platform': 35,            # New: Fake exchange/mining platform
-    'task_scam': 35,                # New: Task-based job scam
-    'romance_scam': 35,             # New: Romance/social media scam
-    'account_hijack': 30,           # New: Account takeover attempt
-    'ssl_missing': 25,              # New: No HTTPS
-    'brand_impersonation': 30       # New: Fake brand domain
+    'pay_to_withdraw': 40,
+    'fake_platform': 35,
+    'task_scam': 35,
+    'romance_scam': 35,
+    'account_hijack': 30,
+    'ssl_missing': 25,
+    'brand_impersonation': 30
 }
 
 # ============================================
@@ -1154,4 +1154,75 @@ RESPONSE_TEMPLATES = {
             '4. Report to Cyber Cell: 1930'
         ]
     }
+}
+
+# ============================================
+# 8. ADDITIONAL REQUIRED DICTIONARIES
+# ============================================
+
+LANGUAGE_WEIGHTS = {
+    'detected': 1.2,
+    'code_mixed': 1.5,
+    'native_script': 1.3,
+    'transliterated': 0.8
+}
+
+REGION_PATTERNS = {
+    'maharashtra': {
+        'cities': ['मुंबई', 'पुणे', 'नागपूर', 'नाशिक', 'औरंगाबाद', 'ठाणे', 'पिंपरी', 'कल्याण'],
+        'state_code': 'MH',
+        'language': 'marathi'
+    },
+    'tamil_nadu': {
+        'cities': ['சென்னை', 'கோயம்புத்தூர்', 'மதுரை', 'திருச்சி', 'சேலம்', 'திருநெல்வேலி'],
+        'state_code': 'TN',
+        'language': 'tamil'
+    },
+    'karnataka': {
+        'cities': ['ಬೆಂಗಳೂರು', 'ಮೈಸೂರು', 'ಹುಬ್ಬಳ್ಳಿ', 'ಮಂಗಳೂರು', 'ಬೆಳಗಾವಿ'],
+        'state_code': 'KA',
+        'language': 'kannada'
+    },
+    'telangana': {
+        'cities': ['హైదరాబాద్', 'వరంగల్', 'నిజామాబాద్', 'ఖమ్మం'],
+        'state_code': 'TS',
+        'language': 'telugu'
+    },
+    'gujarat': {
+        'cities': ['અમદાવાદ', 'સુરત', 'વડોદરા', 'રાજકોટ', 'ભાવનગર'],
+        'state_code': 'GJ',
+        'language': 'gujarati'
+    },
+    'west_bengal': {
+        'cities': ['কলকাতা', 'হাওড়া', 'দুর্গাপুর', 'শিলিগুড়ি'],
+        'state_code': 'WB',
+        'language': 'bengali'
+    },
+    'punjab': {
+        'cities': ['ਚੰਡੀਗੜ੍ਹ', 'ਲੁਧਿਆਣਾ', 'ਅੰਮ੍ਰਿਤਸਰ', 'ਜਲੰਧਰ'],
+        'state_code': 'PB',
+        'language': 'punjabi'
+    },
+    'delhi': {
+        'cities': ['दिल्ली', 'नई दिल्ली', 'द्वारका', 'रोहिणी'],
+        'state_code': 'DL',
+        'language': 'hindi'
+    }
+}
+
+INDIAN_CONTEXT = {
+    'id_proofs': [
+        'aadhaar', 'आधार', 'ஆதார்', 'ఆధార్', 'ಆಧಾರ್', 'ആധാർ', 'આધાર', 'আধার', 'ਆਧਾਰ',
+        'pan', 'पैन', 'பான்', 'పాన్', 'ಪಾನ್', 'പാൻ', 'પાન', 'প্যান', 'ਪੈਨ',
+        'voter', 'वोटर', 'வாக்காளர்', 'ఓటర్', 'ಮತದಾರ', 'വോട്ടർ', 'मतदार'
+    ],
+    'payment_methods': [
+        'upi', 'भीम', 'பீம்', 'భీమ్', 'ಭೀಮ್', 'ഭീം', 'ભીમ', 'ভীম', 'ਭੀਮ',
+        'paytm', 'phonepe', 'googlepay', 'amazonpay',
+        'netbanking', 'डेबिट', 'क्रेडिट'
+    ],
+    'bank_names': [
+        'sbi', 'hdfc', 'icici', 'axis', 'pnb', 'bob', 'canara',
+        'एसबीआई', 'एचडीएफसी', 'आईसीआईसीआई'
+    ]
 }
