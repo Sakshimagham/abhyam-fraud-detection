@@ -50,7 +50,7 @@ try:
 
     from feature_engineering.feature_router import get_feature_router
     from risk_engine.rule_engine import MultilingualRuleEngine
-    from risk_engine.rule_config import HELPLINE_NUMBERS
+    from risk_engine.rule_config import HELPLINE_NUMBERS, RESPONSE_TEMPLATES
     from feature_engineering.language_detector import IndianLanguageDetector
 
     # ============================================
@@ -517,6 +517,26 @@ try:
             return 0.5, "Rule Engine only (ML error)"
 
     # ============================================
+    # Helper: Prepare input data for rule engine based on fraud type
+    # ============================================
+    def prepare_rule_input(fraud_type, text, sender_id):
+        """Convert text input into the dict expected by rule_engine.calculate_risk for given fraud_type."""
+        if fraud_type == 'sms':
+            return {'text': text, 'sender_id': sender_id}
+        elif fraud_type == 'call':
+            return {'transcript': text, 'caller_id': sender_id, 'duration': None}
+        elif fraud_type == 'crypto':
+            return {'text': text, 'url': None}
+        elif fraud_type == 'job':
+            return {'title': '', 'description': text, 'company': '', 'email': sender_id if '@' in sender_id else ''}
+        elif fraud_type == 'social':
+            return {'bio': text, 'followers': 0, 'following': 0, 'posts': 0, 'account_age': 0}
+        elif fraud_type == 'website':
+            return {'url': text, 'content': '', 'ssl': False, 'domain_age': None}
+        else:
+            return {'text': text, 'sender_id': sender_id}
+
+    # ============================================
     # SESSION STATE (unchanged)
     # ============================================
     if 'username' not in st.session_state:
@@ -701,7 +721,7 @@ try:
     """, unsafe_allow_html=True)
 
     # ============================================
-    # TAB 1: DETECTOR (unchanged functionality)
+    # TAB 1: DETECTOR (updated logic: 10% ML, 90% rule)
     # ============================================
     with tabs[0]:
         col_input, col_output = st.columns([2, 1.5])
@@ -742,8 +762,9 @@ try:
                             for i in range(100):
                                 time.sleep(0.01)
                                 progress_bar.progress(i + 1)
-                            lang, conf, _ = language_detector.detect_language(text_input)
-                            st.success(f"{TEXTS['detected_language']}: {lang} ({TEXTS['confidence']}: {conf:.2%})")
+                            # Use rule engine's language detection for consistency
+                            detected_lang, is_code_mixed, conf = rule_engine.detect_language_from_text(text_input)
+                            st.success(f"{TEXTS['detected_language']}: {detected_lang} ({TEXTS['confidence']}: {conf:.2%})")
             with col_btn2:
                 if st.button("🚨 మోసాన్ని తనిఖీ చేయండి", type="primary", use_container_width=True):
                     if not text_input:
@@ -754,25 +775,76 @@ try:
                             for i in range(100):
                                 time.sleep(0.02)
                                 progress_bar.progress(i + 1)
-                            input_data = {'text': text_input, 'sender_id': sender_id}
-                            features = router.extract_features(fraud_type, input_data)
-                            detected_lang = features.get('detected_language', 'unknown')
-                            
-                            if detected_lang in ['english', 'unknown_latin']:
-                                ml_prob, model_source = get_ml_prediction(fraud_type, input_data, features)
-                            else:
+
+                            # 1. Prepare input for rule engine
+                            rule_input = prepare_rule_input(fraud_type, text_input, sender_id)
+
+                            # 2. Get ML prediction (if model exists)
+                            features = router.extract_features(fraud_type, {'text': text_input, 'sender_id': sender_id})
+                            try:
+                                ml_prob, model_source = get_ml_prediction(fraud_type, {'text': text_input, 'sender_id': sender_id}, features)
+                            except Exception as e:
+                                st.sidebar.write(f"ML error: {e}")
                                 ml_prob = 0.5
                                 model_source = "నియమ ఇంజిన్ మాత్రమే"
-                            
-                            rule_score, reasons, helplines = rule_engine.calculate_risk(fraud_type, input_data, detected_lang)
-                            
-                            if "ML" in model_source:
-                                combined = (ml_prob * 0.7) + (min(rule_score/100, 1.0) * 0.3)
+
+                            # 3. Get rule engine score, reasons, helplines
+                            rule_score, reasons, helplines = rule_engine.calculate_risk(fraud_type, rule_input, detected_lang=None)
+
+                            # 4. Detect language and code‑mixed flag using rule engine (consistent)
+                            detected_lang, is_code_mixed, _ = rule_engine.detect_language_from_text(text_input)
+
+                            # 5. Combine: 10% ML, 90% rule
+                            rule_prob = min(rule_score / 100.0, 1.0)
+                            combined = (ml_prob * 0.1) + (rule_prob * 0.9)
+
+                            # Apply language weight
+                            lang_weight = 1.5 if is_code_mixed else 1.0
+                            final_score = combined * 100 * lang_weight
+                            final_score = min(final_score, 100)
+
+                            # Determine risk level
+                            if final_score >= 80:
+                                risk_level = 'HIGH'
+                                action = 'BLOCK_AND_ALERT'
+                            elif final_score >= 50:
+                                risk_level = 'MEDIUM'
+                                action = 'REVIEW'
+                            elif final_score >= 25:
+                                risk_level = 'LOW'
+                                action = 'MONITOR'
                             else:
-                                combined = min(rule_score/100, 1.0)
-                            
-                            result = rule_engine.combine_risk(combined, rule_score, detected_lang, features.get('is_code_mixed', False))
-                            
+                                risk_level = 'MINIMAL'
+                                action = 'ALLOW'
+
+                            # Get language‑specific response
+                            templates = RESPONSE_TEMPLATES.get(detected_lang, RESPONSE_TEMPLATES['english'])
+                            if risk_level == 'HIGH':
+                                user_message = templates['high_risk']
+                                action_steps = templates.get('action_steps', [
+                                    'Do not share any personal information',
+                                    'Do not click any links',
+                                    'Contact the official helpline',
+                                    'Report to cyber crime: 1930'
+                                ])
+                            elif risk_level == 'MEDIUM':
+                                user_message = templates['medium_risk']
+                                action_steps = ['Verify before proceeding', 'Check with official sources']
+                            else:
+                                user_message = templates['low_risk']
+                                action_steps = ['No immediate action needed']
+
+                            # Build result dict (compatible with existing display)
+                            result = {
+                                'final_score': final_score,
+                                'risk_level': risk_level,
+                                'action': action,
+                                'user_message': user_message,
+                                'action_steps': action_steps,
+                                'language_used': detected_lang,
+                                'code_mixed': is_code_mixed
+                            }
+
                             st.session_state.results = {
                                 'text': text_input,
                                 'sender': sender_id,
@@ -782,8 +854,10 @@ try:
                                 'reasons': reasons,
                                 'helplines': helplines,
                                 'result': result,
-                                'detected_lang': detected_lang
+                                'detected_lang': detected_lang,
+                                'is_code_mixed': is_code_mixed
                             }
+
             st.markdown('</div>', unsafe_allow_html=True)
         
         with col_output:
