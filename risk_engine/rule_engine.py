@@ -45,6 +45,7 @@ class MultilingualRuleEngine:
         
         # Language detection patterns (character/word based)
         self.language_indicators = {
+            'english': ['the', 'is', 'are', 'was', 'were', 'has', 'have', 'been', 'will', 'would'],
             'marathi': ['आहे', 'होते', 'करा', 'मिळाले', 'तुमचे'],
             'hindi': ['है', 'का', 'की', 'के', 'में'],
             'tamil': ['உங்கள்', 'இது', 'அது', 'இங்கே'],
