@@ -9,35 +9,29 @@ from datetime import datetime, timedelta
 # ============================================================================
 # PATH SETUP – WORKING DIRECTORY = REPOSITORY ROOT (on Streamlit Cloud)
 # ============================================================================
-# The current working directory is the repository root (on Streamlit Cloud)
 repo_root = os.getcwd()
 print(f"[DEBUG] Working directory (repo_root): {repo_root}")
 
-# Add repo_root to sys.path so that top‑level packages (feature_engineering, etc.) can be found
 if repo_root not in sys.path:
     sys.path.insert(0, repo_root)
 
-# Also add app_advanced so that components can be found (optional)
 app_advanced_path = os.path.join(repo_root, 'app_advanced')
 if app_advanced_path not in sys.path:
     sys.path.insert(0, app_advanced_path)
 
-# Debug: Check if feature_engineering exists
 feature_eng_path = os.path.join(repo_root, 'feature_engineering')
 print(f"[DEBUG] feature_engineering exists? {os.path.isdir(feature_eng_path)}")
 if os.path.isdir(feature_eng_path):
     print(f"[DEBUG] feature_engineering contents (first 5): {os.listdir(feature_eng_path)[:5]}")
 
-# Debug: Check if models folder exists
 models_path = os.path.join(repo_root, 'models')
 print(f"[DEBUG] models folder exists? {os.path.isdir(models_path)}")
 if os.path.isdir(models_path):
     print(f"[DEBUG] models contents: {os.listdir(models_path)}")
 # -----------------------------------------------------------------------------
-# Now try to import project modules – catch errors and show details
+# Imports
 # -----------------------------------------------------------------------------
 try:
-    # Standard imports (must come before streamlit if we want to use print)
     import pytesseract
     import platform
     import streamlit as st
@@ -48,13 +42,11 @@ try:
     import plotly.graph_objects as go
     from datetime import datetime
 
-    # Set Tesseract path
     if platform.system() == 'Windows':
         pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
     else:
         pytesseract.pytesseract.tesseract_cmd = 'tesseract'
 
-    # Now import our custom modules
     from components.ocr_utils import extract_text_from_image
     from components.company_verifier import extract_company_mentions, verify_sender
     from components.feedback_db import save_feedback
@@ -63,24 +55,20 @@ try:
 
     from feature_engineering.feature_router import get_feature_router
     from risk_engine.rule_engine import MultilingualRuleEngine
-    from risk_engine.rule_config import HELPLINE_NUMBERS
+    from risk_engine.rule_config import HELPLINE_NUMBERS, RESPONSE_TEMPLATES
     from feature_engineering.language_detector import IndianLanguageDetector
 
-    # If we reach here, everything imported successfully
     print("[DEBUG] All imports succeeded.")
 
 except Exception as e:
-    # If any import fails, print details and re-raise so the app shows error
     print(f"[DEBUG] Import error: {e}")
-    import traceback
     traceback.print_exc()
-    raise  # Will be caught by the outer try block (see below)
+    raise
 
 # =============================================================================
 # Rest of the application
 # =============================================================================
 
-# Set up global exception handler
 def global_excepthook(exctype, value, tb):
     import streamlit as st
     st.error(f"**Uncaught exception:** {value}")
@@ -89,7 +77,6 @@ def global_excepthook(exctype, value, tb):
 
 sys.excepthook = global_excepthook
 
-# Now wrap the rest of the app in a try block to display errors nicely
 try:
     # ============================================
     # PAGE CONFIG
@@ -102,7 +89,7 @@ try:
     )
 
     # ============================================
-    # DARK MODERN CSS with separated sidebar/main colors
+    # DARK MODERN CSS (unchanged)
     # ============================================
     st.markdown("""
     <style>
@@ -127,13 +114,11 @@ try:
             font-family: 'Inter', sans-serif;
         }
 
-        /* Dark background */
         body {
             background: #0A0C10;
             background-image: radial-gradient(circle at 20% 30%, rgba(24,183,190,0.05) 0%, transparent 50%);
         }
 
-        /* Main container – light card */
         .main-container {
             background: rgba(245, 245, 220, 1);
             border-radius: 32px;
@@ -143,7 +128,7 @@ try:
             border: 1px solid rgba(24,183,190,0.3);
         }
 
-        /* Rotating language letters – vibrant from the sets */
+        /* Rotating language letters ... (unchanged) */
         .title-wrapper {
             position: relative;
             width: 320px;
@@ -195,7 +180,6 @@ try:
             to   { transform: rotate(360deg) translateX(130px) rotate(-360deg); }
         }
 
-        /* Stat cards – dark with subtle gradient and accent border */
         .stat-card {
             background: linear-gradient(145deg, #1A2632, #10171F);
             border-radius: 24px;
@@ -225,7 +209,6 @@ try:
             font-weight: 600;
         }
 
-        /* Input card – dark glass */
         .input-card {
             background: rgba(18, 25, 35, 0.7);
             border-radius: 28px;
@@ -234,7 +217,6 @@ try:
             backdrop-filter: blur(8px);
         }
 
-        /* Buttons – vibrant */
         .stButton button {
             border-radius: 40px !important;
             font-weight: 600 !important;
@@ -258,7 +240,6 @@ try:
             background: #C0A9BD !important;
         }
 
-        /* Inputs – dark mode */
         .stTextInput > div > div > input, .stTextArea textarea, .stSelectbox > div > div {
             background: rgba(10,12,16,0.8) !important;
             border: 1px solid #2D3A46 !important;
@@ -270,19 +251,16 @@ try:
             box-shadow: 0 0 0 2px rgba(24,183,190,0.2) !important;
         }
 
-        /* Slider */
         .stSlider > div > div > div {
             background: #18B7BE !important;
         }
 
-        /* Progress bar */
         .stProgress > div > div > div > div {
             background: #FEDD89 !important;
             height: 8px !important;
             border-radius: 4px !important;
         }
 
-        /* Risk badges – dark background with bright accents */
         .risk-high, .risk-medium, .risk-low {
             border-radius: 40px;
             padding: 1rem;
@@ -305,7 +283,6 @@ try:
             border-left: 4px solid #18B7BE;
         }
 
-        /* Ticker */
         .ticker-wrap {
             background: rgba(10,12,16,0.6);
             border-radius: 40px;
@@ -319,7 +296,6 @@ try:
             font-weight: 500;
         }
 
-        /* Footer */
         .footer {
             background: rgba(10,12,16,0.8);
             border-radius: 30px 30px 0 0;
@@ -331,7 +307,6 @@ try:
             border-top: 1px solid #2D3A46;
         }
 
-        /* Tabs */
         .stTabs [data-baseweb="tab-list"] button {
             background: transparent;
             font-weight: 600;
@@ -344,7 +319,6 @@ try:
             color: #0A0C10;
         }
 
-        /* General text for main content (light background) */
         .main-container h1, .main-container h2, .main-container h3,
         .main-container h4, .main-container h5, .main-container h6,
         .main-container p, .main-container span, .main-container div,
@@ -354,7 +328,6 @@ try:
             color: #0A0C10;
         }
 
-        /* Sidebar text (dark background) – all text inside sidebar */
         section[data-testid="stSidebar"] h1,
         section[data-testid="stSidebar"] h2,
         section[data-testid="stSidebar"] h3,
@@ -373,7 +346,6 @@ try:
             font-weight: 600;
         }
 
-        /* Sidebar headings specifically larger and bold */
         section[data-testid="stSidebar"] h1,
         section[data-testid="stSidebar"] h2,
         section[data-testid="stSidebar"] h3 {
@@ -381,18 +353,15 @@ try:
             font-size: 1.2rem;
         }
 
-        /* Sidebar background */
         section[data-testid="stSidebar"] {
             background: #0A0C10;
             border-right: 1px solid #1E2A36;
         }
 
-        /* Ensure input card text inside main container is dark */
         .input-card h3, .input-card p, .input-card span, .input-card label {
             color: #0A0C10 !important;
         }
 
-        /* Stat card text (already set) – but ensure they stay light on dark */
         .stat-card .value {
             color: #FEDD89;
         }
@@ -400,7 +369,6 @@ try:
             color: #9BB8C9;
         }
 
-        /* Remove blur from main container if desired (optional) */
         .main-container {
             backdrop-filter: none;
         }
@@ -408,7 +376,7 @@ try:
     """, unsafe_allow_html=True)
 
     # ============================================
-    # LANGUAGE‑SPECIFIC TEXTS (unchanged)
+    # LANGUAGE‑SPECIFIC TEXTS
     # ============================================
     TEXTS = {
         'app_subtitle': "INDIA'S 1ST MULTILINGUAL FRAUD DETECTION SYSTEM",
@@ -459,14 +427,12 @@ try:
     }
 
     # ============================================
-    # LOAD MODELS (using repo_root)
+    # LOAD MODELS
     # ============================================
     @st.cache_resource
     def load_models():
         models = {}
         models_path = os.path.join(repo_root, "models")
-
-        # Debug prints
         print(f"[DEBUG] models_path = {models_path}")
         print(f"[DEBUG] Does models_path exist? {os.path.isdir(models_path)}")
         if os.path.isdir(models_path):
@@ -520,7 +486,7 @@ try:
     router, rule_engine, language_detector, models = init_system()
 
     # ============================================
-    # ML PREDICTION FUNCTION (using repo_root)
+    # ML PREDICTION FUNCTION
     # ============================================
     def get_ml_prediction(fraud_type, input_data, features):
         if fraud_type not in models or models[fraud_type] is None:
@@ -563,7 +529,27 @@ try:
             return 0.5, "Rule Engine only (ML error)"
 
     # ============================================
-    # SESSION STATE (unchanged)
+    # Helper: Prepare input data for rule engine based on fraud type
+    # ============================================
+    def prepare_rule_input(fraud_type, text, sender_id):
+        """Convert text input into the dict expected by rule_engine.calculate_risk for given fraud_type."""
+        if fraud_type == 'sms':
+            return {'text': text, 'sender_id': sender_id}
+        elif fraud_type == 'call':
+            return {'transcript': text, 'caller_id': sender_id, 'duration': None}
+        elif fraud_type == 'crypto':
+            return {'text': text, 'url': None}
+        elif fraud_type == 'job':
+            return {'title': '', 'description': text, 'company': '', 'email': sender_id if '@' in sender_id else ''}
+        elif fraud_type == 'social':
+            return {'bio': text, 'followers': 0, 'following': 0, 'posts': 0, 'account_age': 0}
+        elif fraud_type == 'website':
+            return {'url': text, 'content': '', 'ssl': False, 'domain_age': None}
+        else:
+            return {'text': text, 'sender_id': sender_id}
+
+    # ============================================
+    # SESSION STATE
     # ============================================
     if 'username' not in st.session_state:
         st.session_state.username = ''
@@ -594,14 +580,12 @@ try:
             st.session_state.username = ''
 
         if not st.session_state.logged_in:
-            # Show login button that redirects to login page
             if st.button("🔐 Click to Login", use_container_width=True):
                 st.query_params["lang"] = "English"
                 st.query_params["redirect"] = "pages/english.py"
                 st.switch_page("pages/login.py")
             st.info("Please login to access fraud detection features")
         else:
-            # Show logged in user
             st.success(f"✅ Logged in as **{st.session_state.username}**")
             if st.button("🚪 Logout", use_container_width=True):
                 st.session_state.logged_in = False
@@ -650,17 +634,11 @@ try:
         with col2:
             st.metric(TEXTS['languages'], "10", "🇮🇳")
 
-        
-        # ----------------------------------------
-
     # ============================================
-    # MAIN CONTENT WRAPPED IN UNIFIED BOX
+    # MAIN CONTENT
     # ============================================
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
 
-    # ============================================
-    # MAIN TITLE WITH ROTATING LETTERS
-    # ============================================
     st.markdown("""
     <div class="title-wrapper">
         <div class="lang-letter lang1">A</div>
@@ -682,9 +660,6 @@ try:
     </div>
     """.format(TEXTS['app_subtitle'], TEXTS['tagline']), unsafe_allow_html=True)
 
-    # ============================================
-    # STATS CARDS
-    # ============================================
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.markdown("""
@@ -715,9 +690,6 @@ try:
         </div>
         """, unsafe_allow_html=True)
 
-    # ============================================
-    # TICKER
-    # ============================================
     st.markdown("""
     <div class="ticker-wrap" style="background-color: #301934; padding: 10px;">>
         <div class="ticker" style="color: #F4C2C2; font-weight: bold;">>
@@ -728,31 +700,25 @@ try:
 
     st.markdown("---")
 
-    # ============================================
-    # TABS
-    # ============================================
+    # Tabs
     tab_names = [TEXTS['detector'], TEXTS['learn'], TEXTS['help'], TEXTS['stats'], TEXTS['community'], TEXTS['about']]
     tabs = st.tabs(tab_names)
 
-    # Custom CSS to change the Tab Font Color
     st.markdown(f"""
        <style>
-       /* Target the text inside the tab buttons */
        button[data-baseweb="tab"] p {{
-        color: #3B2F2F; /* A soft Almond/Gold to match burgundy */
+        color: #3B2F2F;
         font-weight: bold;
         font-size: 16px;
       }}
-    
-      /* Optional: Change color when a tab is selected */
       button[data-baseweb="tab"][aria-selected="true"] p {{
-        color: #FFFFFF; /* Pure white for the active tab */
+        color: #FFFFFF;
       }}
       </style>
     """, unsafe_allow_html=True)
 
     # ============================================
-    # TAB 1: DETECTOR (forced ML model)
+    # TAB 1: DETECTOR (10% ML, 90% rule)
     # ============================================
     with tabs[0]:
         col_input, col_output = st.columns([2, 1.5])
@@ -805,30 +771,78 @@ try:
                             for i in range(100):
                                 time.sleep(0.02)
                                 progress_bar.progress(i + 1)
-                            input_data = {'text': text_input, 'sender_id': sender_id}
-                            features = router.extract_features(fraud_type, input_data)
-                            detected_lang = features.get('detected_language', 'unknown')
 
-                            # ---- FORCE ML MODEL: always try, ignore language ----
+                            # 1. Prepare input for rule engine
+                            rule_input = prepare_rule_input(fraud_type, text_input, sender_id)
+
+                            # 2. Get ML prediction (if model exists)
+                            #    We need features for the ML model. Use router.extract_features.
+                            features = router.extract_features(fraud_type, {'text': text_input, 'sender_id': sender_id})
                             try:
-                                ml_prob, model_source = get_ml_prediction(fraud_type, input_data, features)
+                                ml_prob, model_source = get_ml_prediction(fraud_type, {'text': text_input, 'sender_id': sender_id}, features)
                             except Exception as e:
                                 st.sidebar.write(f"ML error: {e}")
                                 ml_prob = 0.5
                                 model_source = "Rule Engine only"
 
-                            # Debug output in sidebar
-                            st.sidebar.write(f"ML prob: {ml_prob:.2f}, source: {model_source}")
-                            # -----------------------------------------------------
+                            # 3. Get rule engine score, reasons, helplines
+                            rule_score, reasons, helplines = rule_engine.calculate_risk(fraud_type, rule_input, detected_lang=None)
+                            # rule_engine.calculate_risk returns (score, reasons, helplines) for sms, but for other types it returns (score, reasons, helplines) as well.
+                            # However, for job/social etc., the function expects specific dict. We'll use the prepared rule_input.
 
-                            rule_score, reasons, helplines = rule_engine.calculate_risk(fraud_type, input_data, detected_lang)
+                            # 4. Detect language and code‑mixed flag using rule engine (consistent)
+                            detected_lang, is_code_mixed, _ = rule_engine.detect_language_from_text(text_input)
 
-                            if "ML" in model_source:
-                                combined = (ml_prob * 0.7) + (min(rule_score/100, 1.0) * 0.3)
+                            # 5. Combine: 10% ML, 90% rule
+                            rule_prob = min(rule_score / 100.0, 1.0)
+                            combined = (ml_prob * 0.1) + (rule_prob * 0.9)
+
+                            # Apply language weight
+                            lang_weight = 1.5 if is_code_mixed else 1.0
+                            final_score = combined * 100 * lang_weight
+                            final_score = min(final_score, 100)
+
+                            # Determine risk level
+                            if final_score >= 80:
+                                risk_level = 'HIGH'
+                                action = 'BLOCK_AND_ALERT'
+                            elif final_score >= 50:
+                                risk_level = 'MEDIUM'
+                                action = 'REVIEW'
+                            elif final_score >= 25:
+                                risk_level = 'LOW'
+                                action = 'MONITOR'
                             else:
-                                combined = min(rule_score/100, 1.0)
+                                risk_level = 'MINIMAL'
+                                action = 'ALLOW'
 
-                            result = rule_engine.combine_risk(combined, rule_score, detected_lang, features.get('is_code_mixed', False))
+                            # Get language‑specific response
+                            templates = RESPONSE_TEMPLATES.get(detected_lang, RESPONSE_TEMPLATES['english'])
+                            if risk_level == 'HIGH':
+                                user_message = templates['high_risk']
+                                action_steps = templates.get('action_steps', [
+                                    'Do not share any personal information',
+                                    'Do not click any links',
+                                    'Contact the official helpline',
+                                    'Report to cyber crime: 1930'
+                                ])
+                            elif risk_level == 'MEDIUM':
+                                user_message = templates['medium_risk']
+                                action_steps = ['Verify before proceeding', 'Check with official sources']
+                            else:
+                                user_message = templates['low_risk']
+                                action_steps = ['No immediate action needed']
+
+                            # Build result dict (compatible with existing display)
+                            result = {
+                                'final_score': final_score,
+                                'risk_level': risk_level,
+                                'action': action,
+                                'user_message': user_message,
+                                'action_steps': action_steps,
+                                'language_used': detected_lang,
+                                'code_mixed': is_code_mixed
+                            }
 
                             st.session_state.results = {
                                 'text': text_input,
@@ -839,8 +853,10 @@ try:
                                 'reasons': reasons,
                                 'helplines': helplines,
                                 'result': result,
-                                'detected_lang': detected_lang
+                                'detected_lang': detected_lang,
+                                'is_code_mixed': is_code_mixed
                             }
+
             st.markdown('</div>', unsafe_allow_html=True)
 
         with col_output:
@@ -1072,7 +1088,7 @@ try:
         """, unsafe_allow_html=True)
 
     # ============================================
-    # FOOTER (inside main container)
+    # FOOTER
     # ============================================
     st.markdown("---")
     st.markdown(f"""
