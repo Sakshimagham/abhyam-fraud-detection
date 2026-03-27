@@ -44,7 +44,7 @@ class MultilingualRuleEngine:
             'hinglish': HINGLISH_PATTERNS
         }
         
-        # Language detection patterns
+        # Language detection patterns (character/word based)
         self.language_indicators = {
             'marathi': ['आहे', 'होते', 'करा', 'मिळाले', 'तुमचे'],
             'hindi': ['है', 'का', 'की', 'के', 'में'],
@@ -805,8 +805,7 @@ if __name__ == "__main__":
             'data': {
                 'text': '🎬 CONGRATULATIONS! You have won ₹5,00,000 + iPhone 16! Click here to claim: https://short.link/xyz123',
                 'sender_id': 'WINNER'
-            },
-            'ml_prob': 0.3  # Simulate low ML score
+            }
         },
         {
             'type': 'call',
@@ -814,16 +813,14 @@ if __name__ == "__main__":
                 'transcript': 'मी पोलीस अधिकारी बोलतोय. तुमच्यावर केस आहे. पैसे भरा नाहीतर अटक',
                 'caller_id': '+1234567890',
                 'duration': 360
-            },
-            'ml_prob': 0.4
+            }
         },
         {
             'type': 'crypto',
             'data': {
                 'text': 'Double your Bitcoin in 24 hours! Guaranteed returns! Pay only 0.01 BTC to unlock withdrawal.',
                 'url': 'https://crypto-scam.xyz'
-            },
-            'ml_prob': 0.2
+            }
         },
         {
             'type': 'job',
@@ -832,8 +829,7 @@ if __name__ == "__main__":
                 'description': 'Earn ₹15,000/day by liking YouTube videos. Join Telegram group. Registration fee ₹500.',
                 'company': '',
                 'email': 'job@scam.com'
-            },
-            'ml_prob': 0.25
+            }
         },
         {
             'type': 'social',
@@ -843,8 +839,7 @@ if __name__ == "__main__":
                 'following': 5000,
                 'posts': 10,
                 'account_age': 2
-            },
-            'ml_prob': 0.5
+            }
         },
         {
             'type': 'website',
@@ -852,8 +847,7 @@ if __name__ == "__main__":
                 'url': 'https://sbi-update.xyz',
                 'content': 'Update your KYC immediately or your account will be blocked.',
                 'trust_data': {'domain_age': 5, 'has_ssl': False, 'has_contact': False}
-            },
-            'ml_prob': 0.6
+            }
         }
     ]
     
@@ -896,8 +890,8 @@ if __name__ == "__main__":
         if helplines:
             print(f"📞 Helplines: {', '.join(helplines[:3])}")
         
-        # Combine with ML
-        result = engine.combine_risk(test['ml_prob'], rule_score, detected_lang, is_code_mixed)
+        # Combine with a dummy ML probability (0.5) – just for demo
+        result = engine.combine_risk(0.5, rule_score, detected_lang, is_code_mixed)
         print(f"\n🎯 Final Risk Assessment:")
         print(f"  Score: {result['final_score']}%")
         print(f"  Level: {result['risk_level']}")
