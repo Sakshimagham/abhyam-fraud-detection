@@ -15,7 +15,7 @@ import re
 from .rule_config import (
     MARATHI_PATTERNS, HINDI_PATTERNS, TAMIL_PATTERNS, TELUGU_PATTERNS,
     KANNADA_PATTERNS, MALAYALAM_PATTERNS, GUJARATI_PATTERNS, BENGALI_PATTERNS,
-    PUNJABI_PATTERNS, ODIA_PATTERNS, ENGLISH_PATTERNS, HINGLISH_PATTERNS,
+    PUNJABI_PATTERNS, ENGLISH_PATTERNS, HINGLISH_PATTERNS,
     TRUSTED_SENDER_PATTERNS, SUSPICIOUS_PATTERNS, LANGUAGE_WEIGHTS,
     RULE_WEIGHTS, HELPLINE_NUMBERS, RESPONSE_TEMPLATES, REGION_PATTERNS,
     SMS_PATTERNS, CALL_PATTERNS, CRYPTO_PATTERNS, JOB_FRAUD_PATTERNS,
@@ -39,7 +39,6 @@ class MultilingualRuleEngine:
             'gujarati': GUJARATI_PATTERNS,
             'bengali': BENGALI_PATTERNS,
             'punjabi': PUNJABI_PATTERNS,
-            'odia': ODIA_PATTERNS,
             'english': ENGLISH_PATTERNS,
             'hinglish': HINGLISH_PATTERNS
         }
@@ -54,8 +53,7 @@ class MultilingualRuleEngine:
             'malayalam': ['നിങ്ങളുടെ', 'ഈ', 'ആ', 'ഇവിടെ'],
             'gujarati': ['તમારું', 'આ', 'તે', 'અહીં'],
             'bengali': ['আপনার', 'এই', 'সেই', 'এখানে'],
-            'punjabi': ['ਤੁਹਾਡਾ', 'ਇਹ', 'ਉਹ', 'ਇੱਥੇ'],
-            'odia': ['ତୁମର', 'ଏହା', 'ସେହି', 'ଏଠାରେ']
+            'punjabi': ['ਤੁਹਾਡਾ', 'ਇਹ', 'ਉਹ', 'ਇੱਥੇ']
         }
         
         # Code-mixed indicators
